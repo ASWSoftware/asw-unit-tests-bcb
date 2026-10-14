@@ -201,9 +201,8 @@ Most checks port unchanged. These may need a look:
   with integers.
 - `CheckNull`, `CheckSame` and `CheckIsType` don't take `std::shared_ptr` or `std::function`; pass a
   raw pointer or a `std::unique_ptr`.
-- `CheckNear` fails for a NaN, where ASWUnitTests' passes, and a null C string passed to a
-  substring, prefix or suffix check, which is undefined behavior in ASWUnitTests, is a defined
-  result here.
+- A null C string compared with a `std::string` in a substring, prefix or suffix check, which is
+  undefined behavior in ASWUnitTests, is a defined result here.
 
 ## What Has No Equivalent
 
