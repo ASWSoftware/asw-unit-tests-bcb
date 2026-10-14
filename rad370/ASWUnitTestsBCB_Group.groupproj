@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{49856144-772B-453D-9B38-AB9708FD1DD5}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="ASWUnitTestsBCB.cbproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\gui\rad370\ASWUnitTestsBCB_GUI.cbproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="ASWUnitTestsBCB">
+        <MSBuild Projects="ASWUnitTestsBCB.cbproj"/>
+    </Target>
+    <Target Name="ASWUnitTestsBCB:Clean">
+        <MSBuild Projects="ASWUnitTestsBCB.cbproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ASWUnitTestsBCB:Make">
+        <MSBuild Projects="ASWUnitTestsBCB.cbproj" Targets="Make"/>
+    </Target>
+    <Target Name="ASWUnitTestsBCB_GUI">
+        <MSBuild Projects="..\gui\rad370\ASWUnitTestsBCB_GUI.cbproj"/>
+    </Target>
+    <Target Name="ASWUnitTestsBCB_GUI:Clean">
+        <MSBuild Projects="..\gui\rad370\ASWUnitTestsBCB_GUI.cbproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ASWUnitTestsBCB_GUI:Make">
+        <MSBuild Projects="..\gui\rad370\ASWUnitTestsBCB_GUI.cbproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="ASWUnitTestsBCB;ASWUnitTestsBCB_GUI"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="ASWUnitTestsBCB:Clean;ASWUnitTestsBCB_GUI:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="ASWUnitTestsBCB:Make;ASWUnitTestsBCB_GUI:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>
