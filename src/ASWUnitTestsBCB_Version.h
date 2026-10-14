@@ -29,10 +29,10 @@ limitations under the License.
 // pre-release such as "dev.1", which comes before that release in version order (e.g. 0.1.0-dev.1 < 0.1.0).
 // ASWUNITTESTSBCB_VERSION_STRING is "MAJOR.MINOR.PATCH", followed by "-PRERELEASE" if the pre-release isn't empty;
 // change them together (a unit test checks that they match).
-#define ASWUNITTESTSBCB_VERSION_MAJOR 0
-#define ASWUNITTESTSBCB_VERSION_MINOR 1
+#define ASWUNITTESTSBCB_VERSION_MAJOR 1
+#define ASWUNITTESTSBCB_VERSION_MINOR 0
 #define ASWUNITTESTSBCB_VERSION_PATCH 0
 #define ASWUNITTESTSBCB_VERSION_PRERELEASE "dev.1"
-#define ASWUNITTESTSBCB_VERSION_STRING "0.1.0-dev.1"
+#define ASWUNITTESTSBCB_VERSION_STRING "1.0.0-dev.1"
 
 #endif // #ifndef ASWUnitTestsBCB_VersionH
