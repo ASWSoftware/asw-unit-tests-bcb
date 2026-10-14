@@ -1160,4 +1160,4 @@ void __fastcall TTest_ASWUnitTestsBCB_Handler::Test_WildcardMatch()
 
 } // namespace ASWUnitTestsBCB
 
-ASWBCB_REGISTER_TEST_GROUP(ASWUnitTestsBCB::TTest_ASWUnitTestsBCB_Handler)
+ASWBCB_REGISTER_TEST_GROUP_IN_SUITE(ASWUnitTestsBCB::TTest_ASWUnitTestsBCB_Handler, "SelfTests")

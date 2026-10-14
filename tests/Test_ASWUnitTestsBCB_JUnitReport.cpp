@@ -228,4 +228,4 @@ void __fastcall TTest_ASWUnitTestsBCB_JUnitReport::Test_Write_ProducesReadableRe
 
 } // namespace ASWUnitTestsBCB
 
-ASWBCB_REGISTER_TEST_GROUP(ASWUnitTestsBCB::TTest_ASWUnitTestsBCB_JUnitReport)
+ASWBCB_REGISTER_TEST_GROUP_IN_SUITE(ASWUnitTestsBCB::TTest_ASWUnitTestsBCB_JUnitReport, "SelfTests")

@@ -289,4 +289,4 @@ void __fastcall TTest_ASWUnitTestsBCB_GUI_CommandLine::Test_ProcessArguments_Mat
 
 } // namespace ASWUnitTestsBCB
 
-ASWBCB_REGISTER_TEST_GROUP(ASWUnitTestsBCB::TTest_ASWUnitTestsBCB_GUI_CommandLine)
+ASWBCB_REGISTER_TEST_GROUP_IN_SUITE(ASWUnitTestsBCB::TTest_ASWUnitTestsBCB_GUI_CommandLine, "SelfTests.GUI")

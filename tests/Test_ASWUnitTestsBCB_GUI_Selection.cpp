@@ -379,4 +379,4 @@ void __fastcall TTest_ASWUnitTestsBCB_GUI_Selection::Test_RestoreGUISelection_Re
 
 } // namespace ASWUnitTestsBCB
 
-ASWBCB_REGISTER_TEST_GROUP(ASWUnitTestsBCB::TTest_ASWUnitTestsBCB_GUI_Selection)
+ASWBCB_REGISTER_TEST_GROUP_IN_SUITE(ASWUnitTestsBCB::TTest_ASWUnitTestsBCB_GUI_Selection, "SelfTests.GUI")

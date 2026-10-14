@@ -3815,4 +3815,4 @@ void __fastcall TTest_ASWUnitTestsBCB_TestBase::Test_Throws_ChecksAndAsserts()
 
 } // namespace ASWUnitTestsBCB
 
-ASWBCB_REGISTER_TEST_GROUP(ASWUnitTestsBCB::TTest_ASWUnitTestsBCB_TestBase)
+ASWBCB_REGISTER_TEST_GROUP_IN_SUITE(ASWUnitTestsBCB::TTest_ASWUnitTestsBCB_TestBase, "SelfTests")

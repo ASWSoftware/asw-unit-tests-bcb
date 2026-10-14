@@ -331,4 +331,4 @@ void __fastcall TTest_ASWUnitTestsBCB_GUI_Layout::Test_WorkspaceToScreen_Offsets
 
 } // namespace ASWUnitTestsBCB
 
-ASWBCB_REGISTER_TEST_GROUP(ASWUnitTestsBCB::TTest_ASWUnitTestsBCB_GUI_Layout)
+ASWBCB_REGISTER_TEST_GROUP_IN_SUITE(ASWUnitTestsBCB::TTest_ASWUnitTestsBCB_GUI_Layout, "SelfTests.GUI")

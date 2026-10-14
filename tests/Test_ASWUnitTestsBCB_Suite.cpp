@@ -658,9 +658,9 @@ void __fastcall TTest_ASWUnitTestsBCB_Suite::Test_Registration_UncreatableGroupS
 //---------------------------------------------------------------------------
 void __fastcall TTest_ASWUnitTestsBCB_Suite::Test_ThisGroup_IsInItsRegisteredSuite()
 {
-    CheckEquals("ASWUnitTestsBCB.Suites", GetSuitePath(), ASWBCB_HERE,
+    CheckEquals("SelfTests.Nested.Suites", GetSuitePath(), ASWBCB_HERE,
         "ASWBCB_REGISTER_TEST_GROUP_IN_SUITE put this group in its suite");
-    CheckEquals("ASWUnitTestsBCB.Suites.ASWUnitTestsBCB_Suite_Tests", GetQualifiedTestGroupName(), ASWBCB_HERE);
+    CheckEquals("SelfTests.Nested.Suites.ASWUnitTestsBCB_Suite_Tests", GetQualifiedTestGroupName(), ASWBCB_HERE);
 }
 //---------------------------------------------------------------------------
 void __fastcall TTest_ASWUnitTestsBCB_Suite::Test_TSuitePath_EmptyNamesAreInvalid()
@@ -701,4 +701,4 @@ void __fastcall TTest_ASWUnitTestsBCB_Suite::Test_TSuitePath_SplitsNames()
 
 } // namespace ASWUnitTestsBCB
 
-ASWBCB_REGISTER_TEST_GROUP_IN_SUITE(ASWUnitTestsBCB::TTest_ASWUnitTestsBCB_Suite, "ASWUnitTestsBCB.Suites")
+ASWBCB_REGISTER_TEST_GROUP_IN_SUITE(ASWUnitTestsBCB::TTest_ASWUnitTestsBCB_Suite, "SelfTests.Nested.Suites")

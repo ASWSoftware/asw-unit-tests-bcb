@@ -295,4 +295,4 @@ void __fastcall TTest_ASWUnitTestsBCB_GUI_Shuffle::Test_StatusText_DescribesStat
 
 } // namespace ASWUnitTestsBCB
 
-ASWBCB_REGISTER_TEST_GROUP(ASWUnitTestsBCB::TTest_ASWUnitTestsBCB_GUI_Shuffle)
+ASWBCB_REGISTER_TEST_GROUP_IN_SUITE(ASWUnitTestsBCB::TTest_ASWUnitTestsBCB_GUI_Shuffle, "SelfTests.GUI")

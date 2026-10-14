@@ -294,4 +294,4 @@ void __fastcall TTest_ASWUnitTestsBCB_Utils::Test_ToUTF8_NonASCII()
 
 } // namespace ASWUnitTestsBCB
 
-ASWBCB_REGISTER_TEST_GROUP(ASWUnitTestsBCB::TTest_ASWUnitTestsBCB_Utils)
+ASWBCB_REGISTER_TEST_GROUP_IN_SUITE(ASWUnitTestsBCB::TTest_ASWUnitTestsBCB_Utils, "SelfTests")

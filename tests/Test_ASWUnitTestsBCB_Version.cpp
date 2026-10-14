@@ -91,4 +91,4 @@ void __fastcall TTest_ASWUnitTestsBCB_Version::Test_VersionString_MatchesParts()
 
 } // namespace ASWUnitTestsBCB
 
-ASWBCB_REGISTER_TEST_GROUP(ASWUnitTestsBCB::TTest_ASWUnitTestsBCB_Version)
+ASWBCB_REGISTER_TEST_GROUP_IN_SUITE(ASWUnitTestsBCB::TTest_ASWUnitTestsBCB_Version, "SelfTests")

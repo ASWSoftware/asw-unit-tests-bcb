@@ -743,4 +743,4 @@ void __fastcall TTest_ASWUnitTestsBCB_CLI::Test_ToJUnitTestCases_CopiesEachRecor
 
 } // namespace ASWUnitTestsBCB
 
-ASWBCB_REGISTER_TEST_GROUP(ASWUnitTestsBCB::TTest_ASWUnitTestsBCB_CLI)
+ASWBCB_REGISTER_TEST_GROUP_IN_SUITE(ASWUnitTestsBCB::TTest_ASWUnitTestsBCB_CLI, "SelfTests")

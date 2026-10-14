@@ -797,4 +797,4 @@ void __fastcall TTest_ASWUnitTestsBCB_Values::Test_WideStrings()
 
 } // namespace ASWUnitTestsBCB
 
-ASWBCB_REGISTER_TEST_GROUP(ASWUnitTestsBCB::TTest_ASWUnitTestsBCB_Values)
+ASWBCB_REGISTER_TEST_GROUP_IN_SUITE(ASWUnitTestsBCB::TTest_ASWUnitTestsBCB_Values, "SelfTests")

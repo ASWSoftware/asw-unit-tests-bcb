@@ -330,4 +330,4 @@ void __fastcall TTest_ASWUnitTestsBCB_Console::Test_StripColor()
 
 } // namespace ASWUnitTestsBCB
 
-ASWBCB_REGISTER_TEST_GROUP(ASWUnitTestsBCB::TTest_ASWUnitTestsBCB_Console)
+ASWBCB_REGISTER_TEST_GROUP_IN_SUITE(ASWUnitTestsBCB::TTest_ASWUnitTestsBCB_Console, "SelfTests")

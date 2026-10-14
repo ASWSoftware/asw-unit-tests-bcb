@@ -117,4 +117,4 @@ void __fastcall TTest_ASWUnitTestsBCB_StdOutRedirect::Test_Str_CapturesWrittenOu
 
 } // namespace ASWUnitTestsBCB
 
-ASWBCB_REGISTER_TEST_GROUP(ASWUnitTestsBCB::TTest_ASWUnitTestsBCB_StdOutRedirect)
+ASWBCB_REGISTER_TEST_GROUP_IN_SUITE(ASWUnitTestsBCB::TTest_ASWUnitTestsBCB_StdOutRedirect, "SelfTests")

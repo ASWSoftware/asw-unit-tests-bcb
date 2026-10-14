@@ -305,4 +305,4 @@ void __fastcall TTest_ASWUnitTestsBCB_GUI_RunObserver::Test_StopRequest_CanBeReq
 
 } // namespace ASWUnitTestsBCB
 
-ASWBCB_REGISTER_TEST_GROUP(ASWUnitTestsBCB::TTest_ASWUnitTestsBCB_GUI_RunObserver)
+ASWBCB_REGISTER_TEST_GROUP_IN_SUITE(ASWUnitTestsBCB::TTest_ASWUnitTestsBCB_GUI_RunObserver, "SelfTests.GUI")

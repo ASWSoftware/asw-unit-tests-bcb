@@ -672,4 +672,4 @@ void __fastcall TTest_ASWUnitTestsBCB_GUI_TestList::Test_TestsInSuite_IncludesNe
 
 } // namespace ASWUnitTestsBCB
 
-ASWBCB_REGISTER_TEST_GROUP(ASWUnitTestsBCB::TTest_ASWUnitTestsBCB_GUI_TestList)
+ASWBCB_REGISTER_TEST_GROUP_IN_SUITE(ASWUnitTestsBCB::TTest_ASWUnitTestsBCB_GUI_TestList, "SelfTests.GUI")
