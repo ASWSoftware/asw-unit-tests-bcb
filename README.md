@@ -1,4 +1,4 @@
-# ASWUnitTestsBCB
+# ASWUnitTestsBCB - https://github.com/ASWSoftware/asw-unit-tests-bcb
 
 ASWUnitTestsBCB is a unit-testing framework for C++Builder (RAD Studio) projects. It is written in
 the C++03 subset that RAD Studio's classic Win32 compiler (bcc32) accepts, so it tests code that
@@ -9,7 +9,7 @@ A test group is a class derived from `TTestGroupBase`, and every method in its `
 named `Test_<Name>` runs as a test, found through the RTL's own type information, as DUnit finds
 them. There's no list of tests to keep up to date, so a test can't be written but left unregistered.
 
-It is a sibling of [ASWUnitTests](https://github.com/ASWSoftware/asw-unit-tests), a C++17
+It is a sibling of [ASWUnitTests](https://github.com/ASWSoftware/asw-unit-tests), a C++17/C++20
 unit-testing framework for Windows and Linux. The two share concepts, names, command-line options,
 output and report formats, so tests, habits and CI scripts move between them with few changes, but
 they share no code. Use ASWUnitTests for code that only needs C++17 or later compilers.
