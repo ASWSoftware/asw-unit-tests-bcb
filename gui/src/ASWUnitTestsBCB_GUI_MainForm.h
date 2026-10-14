@@ -69,9 +69,11 @@ private:
 
 __published: // IDE-managed Components
     TAction* Act_About;
+    TAction* Act_CollapseAll;
     TAction* Act_CommandLineOptions;
     TAction* Act_CopyDetails;
     TAction* Act_Exit;
+    TAction* Act_ExpandAll;
     TAction* Act_ExportJUnitReport;
     TAction* Act_FocusFilter;
     TAction* Act_ResetLayout;
@@ -118,7 +120,10 @@ __published: // IDE-managed Components
     TMenuItem* MI_TestsSelectNone;
     TMenuItem* MI_TestsSeparator1;
     TMenuItem* MI_View;
+    TMenuItem* MI_ViewCollapseAll;
+    TMenuItem* MI_ViewExpandAll;
     TMenuItem* MI_ViewResetLayout;
+    TMenuItem* MI_ViewSeparator1;
     TMainMenu* MM_Main;
     TProgressBar* PB_Progress;
     TPageControl* PC_Results;
@@ -133,9 +138,11 @@ __published: // IDE-managed Components
     TTabSheet* TS_Log;
     TTreeView* TV_Tests;
     void __fastcall Act_AboutExecute(TObject* Sender);
+    void __fastcall Act_CollapseAllExecute(TObject* Sender);
     void __fastcall Act_CommandLineOptionsExecute(TObject* Sender);
     void __fastcall Act_CopyDetailsExecute(TObject* Sender);
     void __fastcall Act_ExitExecute(TObject* Sender);
+    void __fastcall Act_ExpandAllExecute(TObject* Sender);
     void __fastcall Act_ExportJUnitReportExecute(TObject* Sender);
     void __fastcall Act_FocusFilterExecute(TObject* Sender);
     void __fastcall Act_ResetLayoutExecute(TObject* Sender);
@@ -224,8 +231,10 @@ private:
     void __fastcall DoAbout();
     void __fastcall DoCheckClick();
     void __fastcall DoCloseWindow();
+    void __fastcall DoCollapseAll();
     void __fastcall DoCommandLineOptions();
     void __fastcall DoCopyDetails();
+    void __fastcall DoExpandAll();
     void __fastcall DoExportJUnitReport();
     void __fastcall DoFocusFilter();
     void __fastcall DoRequestCloseAfterRun();

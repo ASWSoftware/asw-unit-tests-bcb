@@ -90,7 +90,7 @@ failure texts.
 
 | Feature | Status | Notes |
 |---|---|---|
-| Test tree with suite nodes, detail pane, failures, log, filter box, Run Selected/Failed, Stop, shuffle options, JUnit export, saved layout and selection | Same | The files live in `%APPDATA%\ASWUnitTestsBCB\`. |
+| Test tree with suite nodes and Expand All/Collapse All, detail pane, failures, log, filter box, Run Selected/Failed, Stop, shuffle options, JUnit export, saved layout and selection | Same | The files live in `%APPDATA%\ASWUnitTestsBCB\`. |
 | GUI-only options `--run`, `--exit`, `--layout-ignore`, `--layout-reset` | Same | |
 | After a timeout or a crash that ends a run | Changed | The GUI runs no more tests until restarted, and exits without destroying anything, since the abandoned test may still be running. ASWUnitTests lets you run again. |
 | Defining `ASWUNITTESTS_RTL_EXCEPTIONS` for the GUI | Not in this edition | Nothing to define. |

@@ -342,6 +342,11 @@ void __fastcall TFormASWUnitTestsBCBGUIMain::Act_AboutExecute(TObject* /*Sender*
     RunGuarded("About", &this->DoAbout);
 }
 //---------------------------------------------------------------------------
+void __fastcall TFormASWUnitTestsBCBGUIMain::Act_CollapseAllExecute(TObject* /*Sender*/)
+{
+    RunGuarded("Collapse All", &this->DoCollapseAll);
+}
+//---------------------------------------------------------------------------
 void __fastcall TFormASWUnitTestsBCBGUIMain::Act_CommandLineOptionsExecute(TObject* /*Sender*/)
 {
     RunGuarded("Command Line Options", &this->DoCommandLineOptions);
@@ -356,6 +361,11 @@ void __fastcall TFormASWUnitTestsBCBGUIMain::Act_ExitExecute(TObject* /*Sender*/
 {
     // During a run, FormCloseQuery() stops it after the current test, then closes.
     RunGuarded("Exit", &this->DoCloseWindow);
+}
+//---------------------------------------------------------------------------
+void __fastcall TFormASWUnitTestsBCBGUIMain::Act_ExpandAllExecute(TObject* /*Sender*/)
+{
+    RunGuarded("Expand All", &this->DoExpandAll);
 }
 //---------------------------------------------------------------------------
 void __fastcall TFormASWUnitTestsBCBGUIMain::Act_ExportJUnitReportExecute(TObject* /*Sender*/)
@@ -556,6 +566,10 @@ void TFormASWUnitTestsBCBGUIMain::BuildTestTree()
     RefreshAllNodeImages();
     SyncTreeChecks();
 
+    // e.g. while the filter hides every test.
+    Act_CollapseAll->Enabled = (TV_Tests->Items->Count > 0);
+    Act_ExpandAll->Enabled = (TV_Tests->Items->Count > 0);
+
     if (TV_Tests->Items->Count > 0)
         TV_Tests->Items->GetFirstNode()->MakeVisible();
 }
@@ -702,6 +716,18 @@ void __fastcall TFormASWUnitTestsBCBGUIMain::DoCloseWindow()
     Close();
 }
 //---------------------------------------------------------------------------
+void __fastcall TFormASWUnitTestsBCBGUIMain::DoCollapseAll()
+{
+    {
+        TTreeUpdateScope const updating(TV_Tests->Items);
+        TV_Tests->FullCollapse();
+    }
+
+    // A selected node that's now hidden passes the selection to the top-level node above it, which the detail pane
+    // was found not to follow on its own.
+    UpdateDetail();
+}
+//---------------------------------------------------------------------------
 void __fastcall TFormASWUnitTestsBCBGUIMain::DoCommandLineOptions()
 {
     UnicodeString const caption = Application->Title + UnicodeString(" - Command Line Options");
@@ -714,6 +740,17 @@ void __fastcall TFormASWUnitTestsBCBGUIMain::DoCopyDetails()
     Clipboard()->AsText = details;
     m_StatusMessage = "Details copied to the clipboard.";
     UpdateStatusBar();
+}
+//---------------------------------------------------------------------------
+void __fastcall TFormASWUnitTestsBCBGUIMain::DoExpandAll()
+{
+    {
+        TTreeUpdateScope const updating(TV_Tests->Items);
+        TV_Tests->FullExpand();
+    }
+
+    if (TV_Tests->Selected != nullptr)
+        TV_Tests->Selected->MakeVisible();
 }
 //---------------------------------------------------------------------------
 /*
