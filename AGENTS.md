@@ -103,7 +103,7 @@ The `Rad370` environment variable must point to the RAD Studio installation (e.g
 
 - Record each notable change under `## [Unreleased]`, in the matching `### Added`, `### Changed`, `### Deprecated`, `### Removed`, `### Fixed`, or `### Security` section.
 - Describe the effect on someone using the framework, not the commit. For a breaking change, say what existing code must change.
-- Until the first release, record one bullet per user-visible capability rather than one per change; from the first release on, record each change.
+- Record each change as its own bullet.
 - The version lives only in `src/ASWUnitTestsBCB_Version.h` (the `ASWUNITTESTSBCB_VERSION_*` macros). `main` carries only release versions, with an empty `ASWUNITTESTSBCB_VERSION_PRERELEASE`. Between releases, `develop` carries the next planned version with a pre-release such as `dev.1` (e.g. `0.2.0-dev.1` after `0.1.0`), which sorts before that release; bump its number only to tell dev builds apart, and never bump the patch number on `develop`.
 - When preparing a release, set the release version in `src/ASWUnitTestsBCB_Version.h` (empty pre-release; the number develop forecast may change, e.g. to a patch release or the next major), rename `[Unreleased]` to `[x.y.z] - YYYY-MM-DD`, start a new empty `[Unreleased]`, and update the compare links at the bottom of the file. After merging the release into `develop`, move `develop` to the next minor version with pre-release `dev.1`.
 
