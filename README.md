@@ -1044,6 +1044,7 @@ The tests run after the group's published tests, named `HexToInt[0]`, `HexToInt[
 The method can also be given as `&TTest_Group::Test_HexToInt`, and an optional fourth argument, a
 function `std::string Name(THexCase const& row)`, labels each row, e.g. `HexToInt[A]`, which reads
 better in `--filter` patterns and CI output. A name used twice in a group stops the run at startup.
+`tests\Test_ASWExample_WordCounter.cpp` registers one, `Count_Words`, with labeled rows.
 
 ## Notes for bcc32
 

@@ -27,6 +27,9 @@ limitations under the License.
 // Module header
 #include "Test_ASWExample_WordCounter.h"
 //---------------------------------------------------------------------------
+#include <string>
+#include <vector>
+//---------------------------------------------------------------------------
 #include <System.SysUtils.hpp>
 //---------------------------------------------------------------------------
 #include "ASWUnitTestsBCB_Registry.h"
@@ -39,6 +42,35 @@ using namespace System::Sysutils;
 namespace ASWUnitTestsBCB
 {
 
+namespace
+{
+
+// Makes a row of the parameterized test Count_Words.
+TWordCountCase WordCountCase(std::string const& name, UnicodeString const& text, int expected)
+{
+    TWordCountCase row;
+    row.Name = name;
+    row.Text = text;
+    row.Expected = expected;
+    return row;
+}
+
+std::string WordCountCaseName(TWordCountCase const& row);
+
+//---------------------------------------------------------------------------
+/*
+    WordCountCaseName
+
+    Labels a row's test "Count_Words[<name>]", rather than "Count_Words[<index>]".
+*/
+std::string WordCountCaseName(TWordCountCase const& row)
+{
+    return row.Name;
+}
+
+} // namespace
+
+
 /////////////////////////////////////////////////////////////////////////////
 // TTest_ASWExample_WordCounter
 /////////////////////////////////////////////////////////////////////////////
@@ -48,8 +80,19 @@ __fastcall TTest_ASWExample_WordCounter::TTest_ASWExample_WordCounter()
     : inherited(TSuitePath("ASWExamples"), "ASWExample_WordCounter_Tests"),
       m_Counter(nullptr)
 {
-    // Nothing to register: the published Test_ methods are found when the group runs. The group is in suite
+    // The published Test_ methods need no registering: they're found when the group runs. The group is in suite
     // "ASWExamples", so --filter "ASWExamples.*" runs it.
+
+    // A parameterized test is registered here instead: Count_Words runs once per row, after the published tests,
+    // each time with its own copy of that row, as "Count_Words[OneWord]" and so on. Without WordCountCaseName,
+    // they'd be "Count_Words[0]", "Count_Words[1]", ...
+    std::vector<TWordCountCase> rows;
+    rows.push_back(WordCountCase("OneWord", L"one", 1));
+    rows.push_back(WordCountCase("TwoWords", L"one two", 2));
+    rows.push_back(WordCountCase("Padded", L"  one  ", 1));
+    rows.push_back(WordCountCase("Tabs", L"one\ttwo\tthree", 3));
+    rows.push_back(WordCountCase("Punctuation", L"well, hello there.", 3)); // Only white space separates words
+    RegisterTestCases(Test_Count_Words, "Count_Words", rows, WordCountCaseName);
 }
 //---------------------------------------------------------------------------
 __fastcall TTest_ASWExample_WordCounter::~TTest_ASWExample_WordCounter()
@@ -100,6 +143,13 @@ void __fastcall TTest_ASWExample_WordCounter::Test_Count_Separators()
     m_Counter->SetText(L"  one\ttwo\r\nthree  four ");
 
     CheckEquals(4, m_Counter->Count(), ASWBCB_HERE, "spaces, tabs and line breaks separate words");
+}
+//---------------------------------------------------------------------------
+void __fastcall TTest_ASWExample_WordCounter::Test_Count_Words(TWordCountCase const& row)
+{
+    m_Counter->SetText(row.Text); // SetUp_Test() and TearDown_Test() run around each row, as around any test
+
+    CheckEquals(row.Expected, m_Counter->Count(), ASWBCB_HERE);
 }
 //---------------------------------------------------------------------------
 void __fastcall TTest_ASWExample_WordCounter::Test_SetLimit_Invalid()
