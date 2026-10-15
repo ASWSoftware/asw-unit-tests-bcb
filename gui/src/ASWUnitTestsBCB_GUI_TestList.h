@@ -50,7 +50,7 @@ struct TGUICheckState
     {
         Unchecked,
         Checked,
-        Partial
+        Partial,
     };
 };
 
@@ -70,7 +70,7 @@ struct TGUITestStatus
         Running,
         Passed,
         Failed,
-        Skipped
+        Skipped,
     };
 };
 

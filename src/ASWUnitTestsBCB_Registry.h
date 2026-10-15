@@ -79,6 +79,7 @@ public:
     // The first registered group, or nullptr when there's none; follow Next for the rest, in no particular order.
     static TTestGroupRegistrar const* First();
 
+public:
     // Registers a group (see ASWBCB_REGISTER_TEST_GROUP), adding it to the list First() starts. 'suitePath' is ""
     // for a registration that names no suite.
     TTestGroupRegistrar(TTestGroupFactory factory, System::TClass groupClass, char const* groupClassName,

@@ -59,6 +59,7 @@ class TCrashGuard
 public:
     typedef void __fastcall (__closure* TBody)();
 
+public:
     // Calls 'body' and returns a result with Crashed set if it caused a stack overflow or an illegal instruction on
     // this thread.
     static TCrashGuardResult Run(TBody body);

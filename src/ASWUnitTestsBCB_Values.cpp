@@ -184,6 +184,7 @@ TChar ToLowerASCII(TChar character)
 
 } // namespace
 
+//---------------------------------------------------------------------------
 
 namespace ASWUnitTestsBCB
 {

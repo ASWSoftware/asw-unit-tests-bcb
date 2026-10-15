@@ -140,6 +140,8 @@ bool SortKeyLess(std::vector<TSortLevel> const& a, std::vector<TSortLevel> const
 
 } // namespace
 
+//---------------------------------------------------------------------------
+
 namespace ASWUnitTestsBCB
 {
 

@@ -36,8 +36,16 @@ using namespace System::Sysutils;
 namespace
 {
 
-// The message of a failed Contains, StartsWith or EndsWith assertion (or a Not form), e.g. "Substring not found:
-// Method (Line): Expected "text" to contain "part". msg".
+std::string TextPartMessage(std::string const& title, std::string const& method, int line, std::string const& text,
+    std::string const& relation, std::string const& part, std::string const& msg, bool ignoreCase);
+
+//---------------------------------------------------------------------------
+/*
+    TextPartMessage
+
+    The message of a failed Contains, StartsWith or EndsWith assertion (or a Not form), e.g. "Substring not found:
+    Method (Line): Expected "text" to contain "part". msg".
+*/
 std::string TextPartMessage(std::string const& title, std::string const& method, int line, std::string const& text,
     std::string const& relation, std::string const& part, std::string const& msg, bool ignoreCase)
 {
@@ -49,6 +57,7 @@ std::string TextPartMessage(std::string const& title, std::string const& method,
 
 } // namespace
 
+//---------------------------------------------------------------------------
 
 namespace ASWUnitTestsBCB
 {

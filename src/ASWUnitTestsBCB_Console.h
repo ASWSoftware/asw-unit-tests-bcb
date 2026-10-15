@@ -54,7 +54,7 @@ struct TConsoleColor
         BrightBlue,
         BrightMagenta,
         BrightCyan,
-        BrightWhite
+        BrightWhite,
     };
 };
 
@@ -68,7 +68,7 @@ struct TColorMode
     {
         Auto, // Color only if standard output is a console that supports it, and NO_COLOR isn't set
         Always,
-        Never
+        Never,
     };
 };
 
@@ -86,7 +86,7 @@ struct TLogKind
         Info,
         Pass,
         Fail,
-        Skip
+        Skip,
     };
 };
 

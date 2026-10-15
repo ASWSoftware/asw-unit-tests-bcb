@@ -138,6 +138,8 @@ bool NoColorRequested()
 
 } // namespace
 
+//---------------------------------------------------------------------------
+
 namespace ASWUnitTestsBCB
 {
 

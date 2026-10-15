@@ -39,7 +39,7 @@ struct TJUnitOutcome
     {
         Pass,
         Fail,
-        Skip
+        Skip,
     };
 };
 

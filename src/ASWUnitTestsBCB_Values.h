@@ -359,7 +359,7 @@ struct TEmptiness
     {
         Empty,
         NotEmpty,
-        NullString // A null C string, which is neither: it isn't a text, not even an empty one
+        NullString, // A null C string, which is neither: it isn't a text, not even an empty one
     };
 };
 
@@ -371,7 +371,7 @@ struct TOrder
         Less,
         Equal,
         Greater,
-        Unordered // A NaN is in no order
+        Unordered, // A NaN is in no order
     };
 };
 
@@ -383,7 +383,7 @@ struct TOrdering
         GreaterThan,
         GreaterThanOrEqual,
         LessThan,
-        LessThanOrEqual
+        LessThanOrEqual,
     };
 };
 
@@ -394,7 +394,7 @@ struct TTextPart
     {
         Contains,  // Anywhere
         EndsWith,  // At the end
-        StartsWith // At the start
+        StartsWith, // At the start
     };
 };
 

@@ -158,8 +158,12 @@ std::string DescribeFault(DWORD code)
     return (code == EXCEPTION_STACK_OVERFLOW) ? "stack overflow" : "illegal instruction";
 }
 //---------------------------------------------------------------------------
-// Installs CrashHandler() the first time, for the life of the process, and returns whether it's installed. Tests
-// run one at a time, so this is never called by two threads at once.
+/*
+    InstallCrashHandler
+
+    Installs CrashHandler() the first time, for the life of the process, and returns whether it's installed. Tests
+    run one at a time, so this is never called by two threads at once.
+*/
 bool InstallCrashHandler()
 {
     if (g_FrameSlot != TLS_OUT_OF_INDEXES)
@@ -177,6 +181,8 @@ bool InstallCrashHandler()
 //---------------------------------------------------------------------------
 
 } // namespace
+
+//---------------------------------------------------------------------------
 
 namespace ASWUnitTestsBCB
 {

@@ -67,7 +67,11 @@ void WriteOrDelete(TCustomIniFile& ini, char const* section, char const* ident,
     ASWUnitTestsBCB::TOptional<int> const& value);
 
 //---------------------------------------------------------------------------
-// The value, or no value if it's missing or isn't a whole number.
+/*
+    ReadInt
+
+    The value, or no value if it's missing or isn't a whole number.
+*/
 ASWUnitTestsBCB::TOptional<int> ReadInt(TCustomIniFile& ini, char const* section, char const* ident)
 {
     int value = 0;
@@ -78,7 +82,11 @@ ASWUnitTestsBCB::TOptional<int> ReadInt(TCustomIniFile& ini, char const* section
     return value;
 }
 //---------------------------------------------------------------------------
-// The value, or no value if it's missing, isn't a whole number, or is less than 'minimum'.
+/*
+    ReadSize
+
+    The value, or no value if it's missing, isn't a whole number, or is less than 'minimum'.
+*/
 ASWUnitTestsBCB::TOptional<int> ReadSize(TCustomIniFile& ini, char const* section, char const* ident, int minimum)
 {
     ASWUnitTestsBCB::TOptional<int> const value = ReadInt(ini, section, ident);
@@ -89,7 +97,11 @@ ASWUnitTestsBCB::TOptional<int> ReadSize(TCustomIniFile& ini, char const* sectio
     return value;
 }
 //---------------------------------------------------------------------------
-// Rounds to the nearest whole number, halves away from zero, as std::lround (C++11) does.
+/*
+    RoundToInt
+
+    Rounds to the nearest whole number, halves away from zero, as std::lround (C++11) does.
+*/
 int RoundToInt(double value)
 {
     return static_cast<int>((value < 0.0) ? -std::floor(-value + 0.5) : std::floor(value + 0.5));
@@ -107,6 +119,7 @@ void WriteOrDelete(TCustomIniFile& ini, char const* section, char const* ident,
 
 } // namespace
 
+//---------------------------------------------------------------------------
 
 namespace ASWUnitTestsBCB
 {

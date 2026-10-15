@@ -91,7 +91,7 @@ struct TNodeKind
     {
         Suite,
         Group,
-        Test
+        Test,
     };
 };
 
@@ -110,7 +110,11 @@ TTreeNode* SuiteTreeNode(TTreeNodes* nodes, TGUITestList const& testList, std::s
 TNodeCheckState ToNodeCheckState(TGUICheckState::Type state);
 
 //---------------------------------------------------------------------------
-// Adds a node as the last child of 'parent', or as the last top-level node when 'parent' is nullptr.
+/*
+    AddTreeNode
+
+    Adds a node as the last child of 'parent', or as the last top-level node when 'parent' is nullptr.
+*/
 TTreeNode* AddTreeNode(TTreeNodes* nodes, TTreeNode* parent, std::string const& text, void* data)
 {
     if (parent == nullptr)
@@ -119,7 +123,11 @@ TTreeNode* AddTreeNode(TTreeNodes* nodes, TTreeNode* parent, std::string const& 
     return nodes->AddChildObject(parent, FromUTF8(text), data);
 }
 //---------------------------------------------------------------------------
-// A Failures & Skips list item's Data holds its test's index into TGUITestList.
+/*
+    DataToIndex
+
+    A Failures & Skips list item's Data holds its test's index into TGUITestList.
+*/
 std::size_t DataToIndex(void* data)
 {
     return static_cast<std::size_t>(reinterpret_cast<NativeUInt>(data));
@@ -130,7 +138,6 @@ std::string FirstLine(std::string const& text)
     return text.substr(0, text.find('\n'));
 }
 //---------------------------------------------------------------------------
-// e.g. "0.84 s"
 std::string FormatSeconds(double seconds)
 {
     std::ostringstream text;
@@ -143,16 +150,22 @@ void* IndexToData(std::size_t index)
     return reinterpret_cast<void*>(static_cast<NativeUInt>(index));
 }
 //---------------------------------------------------------------------------
-// The Log tab's color for one line of the framework's log output: its failure lines (a failed test or check, an
-// unhandled exception, a fatal SetUp_Test()/TearDown_Test() error, a group whose constructor or SetUp_Group() threw,
-// or a test that timed out or crashed) and its skip lines stand out.
+/*
+    LogLineColor
+
+    The Log tab's color for one line of the framework's log output: its failure lines (a failed test or check, an
+    unhandled exception, a fatal SetUp_Test()/TearDown_Test() error, a group whose constructor or SetUp_Group() threw,
+    or a test that timed out or crashed) and its skip lines stand out.
+*/
 TColor LogLineColor(std::string const& line)
 {
     if ((line.find("***Test failed") != std::string::npos) || (line.find("**Check failed") != std::string::npos) ||
         (line.find("\" - failed (") != std::string::npos) || (line.find("Unhandled exception") != std::string::npos) ||
         (line.find("!!FATAL ERROR!!") != std::string::npos) || (line.find("!!ERROR!!") != std::string::npos) ||
         (line.find("!!TIMEOUT!!") != std::string::npos) || (line.find("!!CRASH!!") != std::string::npos))
+    {
         return FailureColor;
+    }
 
     if ((line.find("***Test skipped") != std::string::npos) || (line.find("\" - skipped (") != std::string::npos))
         return SkipColor;
@@ -160,7 +173,11 @@ TColor LogLineColor(std::string const& line)
     return clWindowText;
 }
 //---------------------------------------------------------------------------
-// Every monitor's work area (the part the taskbar and other docked bars leave free), in screen pixels.
+/*
+    MonitorWorkAreas
+
+    Every monitor's work area (the part the taskbar and other docked bars leave free), in screen pixels.
+*/
 std::vector<TRect> MonitorWorkAreas()
 {
     std::vector<TRect> workAreas;
@@ -176,7 +193,11 @@ std::vector<TRect> MonitorWorkAreas()
     return workAreas;
 }
 //---------------------------------------------------------------------------
-// A test tree node's Data, from its kind and index (see TNodeKind). The kind takes the low two bits.
+/*
+    NodeData
+
+    A test tree node's Data, from its kind and index (see TNodeKind). The kind takes the low two bits.
+*/
 void* NodeData(TNodeKind::Type kind, std::size_t index)
 {
     return reinterpret_cast<void*>(static_cast<NativeUInt>(index) * 4 + static_cast<NativeUInt>(kind));
@@ -192,8 +213,12 @@ TNodeKind::Type NodeKind(void* data)
     return static_cast<TNodeKind::Type>(reinterpret_cast<NativeUInt>(data) % 4);
 }
 //---------------------------------------------------------------------------
-// The tree node of suite 'suitePath', by index into testList.SuitePaths() in 'suiteNodes': added the first time it's
-// asked for, after the nodes of the suites holding it; nullptr for an empty path (the top level).
+/*
+    SuiteTreeNode
+
+    The tree node of suite 'suitePath', by index into testList.SuitePaths() in 'suiteNodes': added the first time it's
+    asked for, after the nodes of the suites holding it; nullptr for an empty path (the top level).
+*/
 TTreeNode* SuiteTreeNode(TTreeNodes* nodes, TGUITestList const& testList, std::string const& suitePath,
     std::vector<TTreeNode*>& suiteNodes)
 {
@@ -290,6 +315,7 @@ public:
 
 } // namespace
 
+//---------------------------------------------------------------------------
 
 /////////////////////////////////////////////////////////////////////////////
 // TFormASWUnitTestsBCBGUIMain
@@ -576,7 +602,11 @@ void TFormASWUnitTestsBCBGUIMain::BuildTestTree()
         TV_Tests->Items->GetFirstNode()->MakeVisible();
 }
 //---------------------------------------------------------------------------
-// Sizes the window to 'width' x 'height' pixels and centers it on its monitor's work area.
+/*
+    TFormASWUnitTestsBCBGUIMain::CenterOnMonitor
+
+    Sizes the window to 'width' x 'height' pixels and centers it on its monitor's work area.
+*/
 void TFormASWUnitTestsBCBGUIMain::CenterOnMonitor(int width, int height)
 {
     TRect const workArea = Monitor->WorkareaRect;

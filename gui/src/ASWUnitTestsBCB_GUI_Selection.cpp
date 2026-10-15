@@ -52,13 +52,21 @@ bool IsStorableName(std::string const& name);
 std::string Plural(std::size_t count, char const* singular, char const* plural);
 
 //---------------------------------------------------------------------------
-// Whether 'name' fits on one line of the selection file, without its tab separator or line break.
+/*
+    IsStorableName
+
+    Whether 'name' fits on one line of the selection file, without its tab separator or line break.
+*/
 bool IsStorableName(std::string const& name)
 {
     return name.find_first_of("\t\r\n") == std::string::npos;
 }
 //---------------------------------------------------------------------------
-// e.g. "1 test" or "3 tests"
+/*
+    Plural
+
+    e.g. "1 test" or "3 tests"
+*/
 std::string Plural(std::size_t count, char const* singular, char const* plural)
 {
     return ASWUnitTestsBCB::UIntToString(static_cast<unsigned int>(count)) + " " + ((count == 1) ? singular : plural);
@@ -67,6 +75,7 @@ std::string Plural(std::size_t count, char const* singular, char const* plural)
 
 } // namespace
 
+//---------------------------------------------------------------------------
 
 namespace ASWUnitTestsBCB
 {

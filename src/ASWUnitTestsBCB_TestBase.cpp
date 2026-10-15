@@ -162,7 +162,11 @@ bool IsNear(TFloat expected, TFloat actual, TFloat tolerance, TFloat& difference
     return (expected == actual) || (difference <= tolerance);
 }
 //---------------------------------------------------------------------------
-// True for "Test_<Name>" with a non-empty <Name>.
+/*
+    IsTestMethodName
+
+    True for "Test_<Name>" with a non-empty <Name>.
+*/
 bool IsTestMethodName(std::string const& methodName)
 {
     return (methodName.size() > TestMethodPrefixLength) &&
@@ -289,6 +293,7 @@ bool WaitForWorker(TThread& worker, unsigned int timeoutSeconds)
 
 } // namespace
 
+//---------------------------------------------------------------------------
 
 /////////////////////////////////////////////////////////////////////////////
 // TCheckMessage

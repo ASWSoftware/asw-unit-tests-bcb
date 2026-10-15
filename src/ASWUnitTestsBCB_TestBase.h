@@ -60,7 +60,7 @@ struct TTestOutcome
     {
         Pass,
         Fail,
-        Skip
+        Skip,
     };
 };
 
