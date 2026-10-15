@@ -54,14 +54,11 @@ typedef void __fastcall (__closure* TTestMethod)();
 /////////////////////////////////////////////////////////////////////////////
 // TTestOutcome
 /////////////////////////////////////////////////////////////////////////////
-struct TTestOutcome
+enum class TTestOutcome
 {
-    enum Type
-    {
-        Pass,
-        Fail,
-        Skip,
-    };
+    Pass,
+    Fail,
+    Skip,
 };
 
 
@@ -82,7 +79,7 @@ struct TTestCaseRecord
     std::string GroupName;
     std::string TestName;
     double DurationSeconds;
-    TTestOutcome::Type Outcome;
+    TTestOutcome Outcome;
     std::string Message;   // Failure/skip detail; empty for Pass.
     std::string SuitePath; // Empty when the group isn't in a suite.
 
@@ -768,12 +765,12 @@ private:
     };
 
     // The lifecycle methods CallHook() calls.
-    enum THook
+    enum class THook
     {
-        HookSetUpGroup,
-        HookSetUpTest,
-        HookTearDownGroup,
-        HookTearDownTest
+        SetUpGroup,
+        SetUpTest,
+        TearDownGroup,
+        TearDownTest,
     };
 
     TestCallbackList m_RegisteredTests; // Owned; moved to m_TestCallbacks by GetTestCallbackList()
@@ -793,7 +790,7 @@ private:
 
     // Used by the Assert ordering methods: throws TExceptOrdering unless 'value' has relation 'ordering' to 'bound'.
     template <typename TValue, typename TBound>
-    void AssertOrdering(TValue const& value, TBound const& bound, TOrdering::Type ordering, std::string const& method,
+    void AssertOrdering(TValue const& value, TBound const& bound, TOrdering ordering, std::string const& method,
         int line, TCheckMessage const& msg)
     {
         if (!OrderingHolds(CompareOrdered(value, bound), ordering))
@@ -814,7 +811,7 @@ private:
     bool CallHook(THook hook, ITestCase* testCase, THookError& error);
     // Used by the Check ordering methods: records a failure unless 'value' has relation 'ordering' to 'bound'.
     template <typename TValue, typename TBound>
-    void CheckOrdering(TValue const& value, TBound const& bound, TOrdering::Type ordering, std::string const& method,
+    void CheckOrdering(TValue const& value, TBound const& bound, TOrdering ordering, std::string const& method,
         int line, TCheckMessage const& msg)
     {
         if (!OrderingHolds(CompareOrdered(value, bound), ordering))
@@ -830,7 +827,7 @@ private:
     // Ends what BeginWorkerRecording() (without 'finishing') allowed.
     void EndWorkerRecording();
     // Records 'testCase''s outcome, logs it, and counts it in Results().
-    void FinishTest(ITestCase& testCase, TTestOutcome::Type outcome, std::string const& detail, double durationMs);
+    void FinishTest(ITestCase& testCase, TTestOutcome outcome, std::string const& detail, double durationMs);
     // Runs m_GuardedTestCase with Test(), inside RunCatchingCrashes()' crash guard. __fastcall, since the guard calls
     // it as a TCrashGuard::TBody.
     void __fastcall RunGuardedTest();
@@ -841,7 +838,7 @@ private:
     // when no type was given), 'message' is the text checked for the expected message, and 'description' is how
     // the exception is shown in a failure detail. Sets 'outcome' and 'detail'.
     void ScoreExpectedException(bool typeMatches, std::string const& message, std::string const& description,
-        TTestOutcome::Type& outcome, std::string& detail);
+        TTestOutcome& outcome, std::string& detail);
     // Puts the group in suite 'suitePath', unchecked (see TSuitePath), for the constructor, and for TTestHandler
     // when the group's registration names its suite (see ASWBCB_REGISTER_TEST_GROUP_IN_SUITE).
     void SetSuitePath(std::string const& suitePath);

@@ -175,8 +175,8 @@ ASWBCB_REGISTER_TEST_GROUP(ASWUnitTestsBCB::TTest_TStack)
 5. **Location arguments.** `__func__, __LINE__` still work. `ASWBCB_HERE` is shorter. A check
    without location arguments (the C++20 `std::source_location` forms) needs one added.
 6. **C++03.** Rewrite test code that uses C++11 or later for bcc32: no `auto`, lambdas,
-   range-based `for`, `override`, `enum class`, brace-initialized containers, raw string literals or
-   `std::shared_ptr`/`std::function`. `nullptr` works. See
+   range-based `for`, `override`, brace-initialized containers, raw string literals or
+   `std::shared_ptr`/`std::function`. `nullptr` and `enum class` work. See
    [Notes for bcc32](../README.md#notes-for-bcc32).
 7. **Lambdas passed to checks.** `CheckThrows`, `AssertThrows`, `CheckNoThrow` and `AssertNoThrow`
    take a closure, a function or a functor object instead of a lambda: move the lambda's body into a
@@ -197,8 +197,8 @@ Most checks port unchanged. These may need a look:
 - `CheckMatches` and `CheckNotMatches` use PCRE syntax (the RTL's `TRegEx`), not ECMAScript. Common
   patterns read the same in both; there are no raw string literals in C++03, so double the
   backslashes (`"\\d{4}"`).
-- `CheckEquals` of two `enum class` values becomes a comparison of plain enums, which also compare
-  with integers.
+- `CheckEquals` of two `enum class` values compares them as plain enums, by their integer values, so
+  an `enum class` also compares with an integer or another enum type, which ASWUnitTests rejects.
 - `CheckNull`, `CheckSame` and `CheckIsType` don't take `std::shared_ptr` or `std::function`; pass a
   raw pointer or a `std::unique_ptr`.
 - A null C string compared with a `std::string` in a substring, prefix or suffix check, which is

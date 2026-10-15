@@ -34,42 +34,36 @@ namespace ASWUnitTestsBCB
 /////////////////////////////////////////////////////////////////////////////
 // TConsoleColor
 /////////////////////////////////////////////////////////////////////////////
-struct TConsoleColor
+enum class TConsoleColor
 {
-    enum Type
-    {
-        Default,
-        Black,
-        Red,
-        Green,
-        Yellow,
-        Blue,
-        Magenta,
-        Cyan,
-        White,
-        BrightBlack,
-        BrightRed,
-        BrightGreen,
-        BrightYellow,
-        BrightBlue,
-        BrightMagenta,
-        BrightCyan,
-        BrightWhite,
-    };
+    Default,
+    Black,
+    Red,
+    Green,
+    Yellow,
+    Blue,
+    Magenta,
+    Cyan,
+    White,
+    BrightBlack,
+    BrightRed,
+    BrightGreen,
+    BrightYellow,
+    BrightBlue,
+    BrightMagenta,
+    BrightCyan,
+    BrightWhite,
 };
 
 
 /////////////////////////////////////////////////////////////////////////////
 // TColorMode
 /////////////////////////////////////////////////////////////////////////////
-struct TColorMode
+enum class TColorMode
 {
-    enum Type
-    {
-        Auto, // Color only if standard output is a console that supports it, and NO_COLOR isn't set
-        Always,
-        Never,
-    };
+    Auto, // Color only if standard output is a console that supports it, and NO_COLOR isn't set
+    Always,
+    Never,
 };
 
 
@@ -79,15 +73,12 @@ struct TColorMode
 // What a piece of output represents, for TConsole::Colorize(). Info is
 // never colored; it exists so callers can pass a kind unconditionally.
 /////////////////////////////////////////////////////////////////////////////
-struct TLogKind
+enum class TLogKind
 {
-    enum Type
-    {
-        Info,
-        Pass,
-        Fail,
-        Skip,
-    };
+    Info,
+    Pass,
+    Fail,
+    Skip,
 };
 
 
@@ -108,16 +99,16 @@ class TConsole
 public:
     // Wraps 'text' in the escape sequences for 'kind''s color, or returns it unchanged if color is off or 'kind' is
     // TLogKind::Info.
-    static std::string Colorize(std::string const& text, TLogKind::Type kind);
+    static std::string Colorize(std::string const& text, TLogKind kind);
     // The color for 'kind'; TConsoleColor::Default for TLogKind::Info.
-    static TConsoleColor::Type GetColor(TLogKind::Type kind);
-    static TColorMode::Type GetColorMode();
+    static TConsoleColor GetColor(TLogKind kind);
+    static TColorMode GetColorMode();
     static bool IsColorEnabled();
     // Parses a color name that --color-pass, --color-fail and --color-skip take, e.g. "red" or "bright-green";
     // returns no value if 'name' isn't one.
-    static TOptional<TConsoleColor::Type> ParseColorName(std::string const& name);
-    static void SetColor(TLogKind::Type kind, TConsoleColor::Type color);
-    static void SetColorMode(TColorMode::Type mode);
+    static TOptional<TConsoleColor> ParseColorName(std::string const& name);
+    static void SetColor(TLogKind kind, TConsoleColor color);
+    static void SetColorMode(TColorMode mode);
     // Returns 'text' without the escape sequences Colorize() adds (any "ESC [ ... m").
     static std::string StripColor(std::string const& text);
 };

@@ -31,13 +31,13 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   different suites, stops the run at startup with `TExceptInvalidSuitePath`.
 - `CheckEquals`, `CheckNotEquals`, `AssertEquals` and `AssertNotEquals` for `bool`, integers of any
   types (compared by value, so `-1` never equals `0xFFFFFFFF`, and shown as numbers, `char` too),
-  enums (by their integer values, also against integers), pointers (by address) and strings of any
-  C++ or RTL string type in any combination, with `IC` forms (`CheckEqualsIC`, ...) that compare two
-  strings ignoring the case of the ASCII letters A-Z; `CheckTrue`, `CheckFalse`, `AssertTrue`,
-  `AssertFalse`, `Fail()` and `Skip()`. A `Check*` failure lets the test go on and fails it at the
-  end; an `Assert*` failure ends it. The location is `ASWBCB_HERE` or the explicit
-  `__FUNC__, __LINE__`, and failure messages show the bare method name with every compiler. The
-  message argument is optional and takes any string type.
+  enums, `enum class` too (by their integer values, also against integers), pointers (by address)
+  and strings of any C++ or RTL string type in any combination, with `IC` forms (`CheckEqualsIC`,
+  ...) that compare two strings ignoring the case of the ASCII letters A-Z; `CheckTrue`,
+  `CheckFalse`, `AssertTrue`, `AssertFalse`, `Fail()` and `Skip()`. A `Check*` failure lets the test
+  go on and fails it at the end; an `Assert*` failure ends it. The location is `ASWBCB_HERE` or the
+  explicit `__FUNC__, __LINE__`, and failure messages show the bare method name with every compiler.
+  The message argument is optional and takes any string type.
 - `CheckNear` and `CheckNotNear`, and their `Assert*` versions, compare two `float` or two `double`
   values with an absolute tolerance. Equal values (infinities too) are near; a NaN is near nothing.
 - `CheckNull` and `CheckNotNull` for raw pointers, `std::unique_ptr` and interface references

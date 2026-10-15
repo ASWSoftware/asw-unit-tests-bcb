@@ -68,10 +68,10 @@ struct TCLIOptions
     unsigned int PartitionCount;              // --partition-count
     TOptional<unsigned int> TestTimeoutSeconds; // --test-timeout-seconds
     bool CatchCrashes;                        // --catch-crashes
-    TColorMode::Type ColorMode;               // --color, --no-color; TColorMode::Auto by default
-    TOptional<TConsoleColor::Type> ColorPass; // --color-pass
-    TOptional<TConsoleColor::Type> ColorFail; // --color-fail
-    TOptional<TConsoleColor::Type> ColorSkip; // --color-skip
+    TColorMode ColorMode;                     // --color, --no-color; TColorMode::Auto by default
+    TOptional<TConsoleColor> ColorPass;       // --color-pass
+    TOptional<TConsoleColor> ColorFail;       // --color-fail
+    TOptional<TConsoleColor> ColorSkip;       // --color-skip
     std::string JUnitReportPath;              // --report-junit; empty for no report
     std::string ProjectName;                  // --project-name; "ASWUnitTestsBCB" by default
     bool PauseOnExit;                         // --pause
@@ -107,7 +107,7 @@ public:
         std::ostream& out);
 
     // Parses "auto", "always" or "never", as --color takes them; returns no value for anything else.
-    static TOptional<TColorMode::Type> ParseColorMode(std::string const& text);
+    static TOptional<TColorMode> ParseColorMode(std::string const& text);
 
     // Returns 'text' as a non-negative integer if all of it is one, in decimal digits only (no sign or spaces), that
     // fits in an unsigned int; otherwise no value.

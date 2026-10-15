@@ -115,10 +115,10 @@ public:
 class TObserverThread : public TThread
 {
 public:
-    enum TAction
+    enum class TAction
     {
         LogFromWorker,
-        RequestStop
+        RequestStop,
     };
 
 private:
@@ -128,7 +128,7 @@ private:
 protected:
     virtual void __fastcall Execute()
     {
-        if (m_Action == LogFromWorker)
+        if (m_Action == TAction::LogFromWorker)
             m_Observer.OnLog("from a worker thread\n");
         else
             m_Observer.RequestStop();
@@ -248,7 +248,7 @@ void __fastcall TTest_ASWUnitTestsBCB_GUI_RunObserver::Test_OnLog_FromWorkerThre
     std::unique_ptr<TCallbackRecorder> const recorder(new TCallbackRecorder(observer));
 
     // Act
-    CallOnWorker(observer, TObserverThread::LogFromWorker);
+    CallOnWorker(observer, TObserverThread::TAction::LogFromWorker);
     std::string const callsAfterWorker = recorder->Calls;
     observer.Flush();
 
@@ -291,7 +291,7 @@ void __fastcall TTest_ASWUnitTestsBCB_GUI_RunObserver::Test_StopRequest_CanBeReq
     bool const initially = observer.StopRequested();
 
     // Act
-    CallOnWorker(observer, TObserverThread::RequestStop);
+    CallOnWorker(observer, TObserverThread::TAction::RequestStop);
     bool const afterRequest = observer.StopRequested();
     observer.ResetStop();
     bool const afterReset = observer.StopRequested();

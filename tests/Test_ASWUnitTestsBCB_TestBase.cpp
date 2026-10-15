@@ -820,18 +820,18 @@ void __fastcall TInnerTB_TearDownGroupThrows::Test_A()
 class TInnerTB_TestEscapes : public TTestGroupBase
 {
 public:
-    enum TKind
+    enum class TKind
     {
         Std,
         RTL,
-        Other
+        Other,
     };
 
     TKind Kind;
 
     __fastcall TInnerTB_TestEscapes()
         : TTestGroupBase("InnerTestEscapes"),
-          Kind(Std)
+          Kind(TKind::Std)
     {
     }
 
@@ -844,10 +844,10 @@ __published:
 
 void TInnerTB_TestEscapes::Test(ITestCase& /*testCase*/)
 {
-    if (Kind == Std)
+    if (Kind == TKind::Std)
         throw std::runtime_error("escaped");
 
-    if (Kind == RTL)
+    if (Kind == TKind::RTL)
         throw EConvertError("rtl escaped");
 
     throw 7;
@@ -3559,8 +3559,9 @@ void __fastcall TTest_ASWUnitTestsBCB_TestBase::Test_Run_Timeout_FatalErrorsEndT
 
     // Anything else that gets out of Test() on the worker arrives as a TExceptFatalError, with what() the
     // description the console runner would print for the original, and the same exit code.
-    TInnerTB_TestEscapes::TKind const kinds[] = { TInnerTB_TestEscapes::Std, TInnerTB_TestEscapes::RTL,
-                                                  TInnerTB_TestEscapes::Other };
+    TInnerTB_TestEscapes::TKind const kinds[] = { TInnerTB_TestEscapes::TKind::Std,
+                                                  TInnerTB_TestEscapes::TKind::RTL,
+                                                  TInnerTB_TestEscapes::TKind::Other };
     char const* const messages[] = { "escaped", "EConvertError: rtl escaped", "Unknown" };
 
     for (std::size_t i = 0; i < (sizeof(kinds) / sizeof(kinds[0])); ++i)
@@ -3570,7 +3571,7 @@ void __fastcall TTest_ASWUnitTestsBCB_TestBase::Test_Run_Timeout_FatalErrorsEndT
         group->SetRunObserver(&observer);
         group->Kind = kinds[i];
         std::string message = "(no exception)";
-        bool unknown = (kinds[i] != TInnerTB_TestEscapes::Other);
+        bool unknown = (kinds[i] != TInnerTB_TestEscapes::TKind::Other);
 
         try
         {
@@ -3583,7 +3584,7 @@ void __fastcall TTest_ASWUnitTestsBCB_TestBase::Test_Run_Timeout_FatalErrorsEndT
         }
 
         CheckEquals(messages[i], message, ASWBCB_HERE, messages[i]);
-        CheckEquals(kinds[i] == TInnerTB_TestEscapes::Other, unknown, ASWBCB_HERE, messages[i]);
+        CheckEquals(kinds[i] == TInnerTB_TestEscapes::TKind::Other, unknown, ASWBCB_HERE, messages[i]);
     }
 }
 //---------------------------------------------------------------------------

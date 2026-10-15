@@ -115,7 +115,7 @@ TJUnitTestCase::TJUnitTestCase()
 }
 //---------------------------------------------------------------------------
 TJUnitTestCase::TJUnitTestCase(std::string const& groupName, std::string const& testName, double durationSeconds,
-    TJUnitOutcome::Type outcome, std::string const& message)
+    TJUnitOutcome outcome, std::string const& message)
     : GroupName(groupName),
       TestName(testName),
       DurationSeconds(durationSeconds),

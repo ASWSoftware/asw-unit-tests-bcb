@@ -85,14 +85,11 @@ TColor const SkipColor = static_cast<TColor>(RGB(190, 120, 0));
 // group node's into its GroupNames(), and a test node's into the list
 // itself.
 /////////////////////////////////////////////////////////////////////////////
-struct TNodeKind
+enum class TNodeKind
 {
-    enum Type
-    {
-        Suite,
-        Group,
-        Test,
-    };
+    Suite,
+    Group,
+    Test,
 };
 
 TTreeNode* AddTreeNode(TTreeNodes* nodes, TTreeNode* parent, std::string const& text, void* data);
@@ -102,12 +99,12 @@ std::string FormatSeconds(double seconds);
 void* IndexToData(std::size_t index);
 TColor LogLineColor(std::string const& line);
 std::vector<TRect> MonitorWorkAreas();
-void* NodeData(TNodeKind::Type kind, std::size_t index);
+void* NodeData(TNodeKind kind, std::size_t index);
 std::size_t NodeIndex(void* data);
-TNodeKind::Type NodeKind(void* data);
+TNodeKind NodeKind(void* data);
 TTreeNode* SuiteTreeNode(TTreeNodes* nodes, TGUITestList const& testList, std::string const& suitePath,
     std::vector<TTreeNode*>& suiteNodes);
-TNodeCheckState ToNodeCheckState(TGUICheckState::Type state);
+TNodeCheckState ToNodeCheckState(TGUICheckState state);
 
 //---------------------------------------------------------------------------
 /*
@@ -198,7 +195,7 @@ std::vector<TRect> MonitorWorkAreas()
 
     A test tree node's Data, from its kind and index (see TNodeKind). The kind takes the low two bits.
 */
-void* NodeData(TNodeKind::Type kind, std::size_t index)
+void* NodeData(TNodeKind kind, std::size_t index)
 {
     return reinterpret_cast<void*>(static_cast<NativeUInt>(index) * 4 + static_cast<NativeUInt>(kind));
 }
@@ -208,9 +205,9 @@ std::size_t NodeIndex(void* data)
     return static_cast<std::size_t>(reinterpret_cast<NativeUInt>(data) / 4);
 }
 //---------------------------------------------------------------------------
-TNodeKind::Type NodeKind(void* data)
+TNodeKind NodeKind(void* data)
 {
-    return static_cast<TNodeKind::Type>(reinterpret_cast<NativeUInt>(data) % 4);
+    return static_cast<TNodeKind>(reinterpret_cast<NativeUInt>(data) % 4);
 }
 //---------------------------------------------------------------------------
 /*
@@ -238,7 +235,7 @@ TTreeNode* SuiteTreeNode(TTreeNodes* nodes, TGUITestList const& testList, std::s
     return suiteNodes[suiteIndex];
 }
 //---------------------------------------------------------------------------
-TNodeCheckState ToNodeCheckState(TGUICheckState::Type state)
+TNodeCheckState ToNodeCheckState(TGUICheckState state)
 {
     switch (state)
     {
@@ -1446,7 +1443,7 @@ void TFormASWUnitTestsBCBGUIMain::SetNodeImage(TTreeNode* node)
 {
     void* const data = node->Data;
     std::size_t const index = NodeIndex(data);
-    TGUITestStatus::Type status = TGUITestStatus::NotRun;
+    TGUITestStatus status = TGUITestStatus::NotRun;
 
     switch (NodeKind(data))
     {

@@ -33,14 +33,11 @@ namespace ASWUnitTestsBCB
 /////////////////////////////////////////////////////////////////////////////
 // TJUnitOutcome
 /////////////////////////////////////////////////////////////////////////////
-struct TJUnitOutcome
+enum class TJUnitOutcome
 {
-    enum Type
-    {
-        Pass,
-        Fail,
-        Skip,
-    };
+    Pass,
+    Fail,
+    Skip,
 };
 
 
@@ -55,12 +52,12 @@ struct TJUnitTestCase
     std::string GroupName;
     std::string TestName;
     double DurationSeconds;
-    TJUnitOutcome::Type Outcome;
+    TJUnitOutcome Outcome;
     std::string Message;
 
     TJUnitTestCase();
     TJUnitTestCase(std::string const& groupName, std::string const& testName, double durationSeconds,
-        TJUnitOutcome::Type outcome, std::string const& message);
+        TJUnitOutcome outcome, std::string const& message);
 };
 
 

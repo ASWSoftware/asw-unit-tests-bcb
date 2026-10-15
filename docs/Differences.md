@@ -48,7 +48,7 @@ failure texts.
 | Feature | Status | Notes |
 |---|---|---|
 | `Equals`/`NotEquals` for `bool`, integers of any types, pointers | Same | |
-| `Equals`/`NotEquals` for enums | Changed | C++03 has no `enum class`: any enum compares by its integer value, with another enum or an integer. |
+| `Equals`/`NotEquals` for enums | Changed | Any enum, `enum class` too, compares by its integer value, with another enum or an integer. ASWUnitTests compares an `enum class` only with one of the same type; bcc32's `enum class` converts to an integer like a plain enum, so the two can't be told apart there. |
 | `Equals`/`NotEquals` for strings | Changed | Any two C++ or RTL string types, e.g. a `std::string` with an `L"..."` literal, or an `AnsiString` with a `UTF8String`, compared as Unicode. ASWUnitTests pairs `std::string`s, `std::wstring`s or C strings, plus `System::String` with RTL support. |
 | `EqualsIC`/`NotEqualsIC`, `Contains`, `StartsWith`, `EndsWith` (and their `Not` and `IC` forms) | Changed | Any two string types, as `Equals`. A null C string, as either argument, never matches a substring, prefix or suffix check, and equals only another null one in `EqualsIC`. ASWUnitTests does the same only when both arguments are C strings; a null one compared with a `std::string` is undefined behavior there. |
 | `Matches`/`NotMatches` | Changed | PCRE syntax, from the RTL's `TRegEx`, where ASWUnitTests uses ECMAScript (`std::regex`). Every text is matched as UTF-16, so `.` is one character; ASWUnitTests matches narrow text byte by byte. |

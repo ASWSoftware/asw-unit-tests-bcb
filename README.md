@@ -708,7 +708,8 @@ then the actual one. They compare:
 - integers of any two types (`int`, `__int64`, `DWORD`, `char`, ...), by value, so `-1` never equals
   an unsigned value, unlike with the built-in `==`, and with no need for a suffix or cast to pick an
   overload. A `char` is shown as a number;
-- enums, with each other or with integers, by their integer values, shown as numbers;
+- enums, plain or `enum class`, with each other or with integers, by their integer values, shown as
+  numbers;
 - pointers, by address;
 - strings of any C++ or RTL string types, in any combination: `char const*`, `char` arrays and
   `std::string` (read as UTF-8), `wchar_t const*`, `wchar_t` arrays and `std::wstring`,
@@ -1051,6 +1052,10 @@ building this framework:
   include, defines it as `NULL` for bcc32, which predates C++11. On bcc32 it's then an integer
   constant, so don't overload a function on `std::nullptr_t`.
 - A closure to another object's method is written `&obj->Method`.
+- bcc32 accepts `enum class`, but only scopes the names: a value still converts to an integer, and
+  compares with integers and with other enum types. bcc64x rejects all of those, so code that
+  relies on them builds only with bcc32; convert explicitly (`static_cast<int>(color)`). bcc32
+  doesn't accept a 64-bit underlying type (`enum class E : unsigned __int64`).
 - An exception thrown while a test group's base class is being constructed, such as one from an
   argument of `inherited(...)`, reaches the framework as an access violation, so the group's tests
   fail with `EAccessViolation` rather than the real exception (bcc64x reports the real one). Throw

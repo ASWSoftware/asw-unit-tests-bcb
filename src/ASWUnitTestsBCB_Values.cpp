@@ -71,7 +71,7 @@ std::string HexBytes(unsigned char const* bytes, std::size_t offset, std::size_t
 
 // See ASWUnitTestsBCB::HasPart().
 template <typename TString>
-bool StringHasPart(TString const& text, TString const& part, ASWUnitTestsBCB::TTextPart::Type where,
+bool StringHasPart(TString const& text, TString const& part, ASWUnitTestsBCB::TTextPart where,
     bool ignoreCase);
 
 // 'character' with an ASCII letter A-Z made lowercase, and anything else unchanged.
@@ -144,7 +144,7 @@ std::string HexBytes(unsigned char const* bytes, std::size_t offset, std::size_t
 }
 //---------------------------------------------------------------------------
 template <typename TString>
-bool StringHasPart(TString const& text, TString const& part, ASWUnitTestsBCB::TTextPart::Type where,
+bool StringHasPart(TString const& text, TString const& part, ASWUnitTestsBCB::TTextPart where,
     bool ignoreCase)
 {
     if (part.size() > text.size())
@@ -328,12 +328,12 @@ bool EqualsIgnoringASCIICase(UnicodeString const& a, UnicodeString const& b)
         true);
 }
 //---------------------------------------------------------------------------
-bool HasPart(std::string const& text, std::string const& part, TTextPart::Type where, bool ignoreCase)
+bool HasPart(std::string const& text, std::string const& part, TTextPart where, bool ignoreCase)
 {
     return StringHasPart(text, part, where, ignoreCase);
 }
 //---------------------------------------------------------------------------
-bool HasPart(std::wstring const& text, std::wstring const& part, TTextPart::Type where, bool ignoreCase)
+bool HasPart(std::wstring const& text, std::wstring const& part, TTextPart where, bool ignoreCase)
 {
     return StringHasPart(text, part, where, ignoreCase);
 }
@@ -463,7 +463,7 @@ std::string NarrowText(std::string const& text)
     return text;
 }
 //---------------------------------------------------------------------------
-bool OrderingHolds(TOrder::Type order, TOrdering::Type ordering)
+bool OrderingHolds(TOrder order, TOrdering ordering)
 {
     if (order == TOrder::Unordered)
         return false;
@@ -486,7 +486,7 @@ bool OrderingHolds(TOrder::Type order, TOrdering::Type ordering)
     return false;
 }
 //---------------------------------------------------------------------------
-char const* OrderingSymbol(TOrdering::Type ordering)
+char const* OrderingSymbol(TOrdering ordering)
 {
     switch (ordering)
     {

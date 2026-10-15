@@ -353,49 +353,37 @@ struct TBoolTag
 
 
 // Whether a value the Empty assertions take is empty (see ValueEmptiness()).
-struct TEmptiness
+enum class TEmptiness
 {
-    enum Type
-    {
-        Empty,
-        NotEmpty,
-        NullString, // A null C string, which is neither: it isn't a text, not even an empty one
-    };
+    Empty,
+    NotEmpty,
+    NullString, // A null C string, which is neither: it isn't a text, not even an empty one
 };
 
 // How a value compares with a bound (see CompareOrdered()).
-struct TOrder
+enum class TOrder
 {
-    enum Type
-    {
-        Less,
-        Equal,
-        Greater,
-        Unordered, // A NaN is in no order
-    };
+    Less,
+    Equal,
+    Greater,
+    Unordered, // A NaN is in no order
 };
 
 // The relation an ordering assertion (e.g. CheckGreaterThan()) checks a value has to a bound.
-struct TOrdering
+enum class TOrdering
 {
-    enum Type
-    {
-        GreaterThan,
-        GreaterThanOrEqual,
-        LessThan,
-        LessThanOrEqual,
-    };
+    GreaterThan,
+    GreaterThanOrEqual,
+    LessThan,
+    LessThanOrEqual,
 };
 
 // Where a text's part is looked for (see TextHasPart()).
-struct TTextPart
+enum class TTextPart
 {
-    enum Type
-    {
-        Contains,  // Anywhere
-        EndsWith,  // At the end
-        StartsWith, // At the start
-    };
+    Contains,  // Anywhere
+    EndsWith,  // At the end
+    StartsWith, // At the start
 };
 
 
@@ -446,8 +434,8 @@ bool EqualsIgnoringASCIICase(System::UnicodeString const& a, System::UnicodeStri
 
 // True when 'text' has 'part' where 'where' says, optionally ignoring the case of the ASCII letters A-Z only (see
 // EqualsIgnoringASCIICase()). Every text has an empty part anywhere.
-bool HasPart(std::string const& text, std::string const& part, TTextPart::Type where, bool ignoreCase);
-bool HasPart(std::wstring const& text, std::wstring const& part, TTextPart::Type where, bool ignoreCase);
+bool HasPart(std::string const& text, std::string const& part, TTextPart where, bool ignoreCase);
+bool HasPart(std::wstring const& text, std::wstring const& part, TTextPart where, bool ignoreCase);
 
 // True for a null C string pointer; a null C string only equals another null one.
 bool IsNullString(char const* text);
@@ -475,9 +463,9 @@ std::string NarrowText(char const* text);
 std::string NarrowText(std::string const& text);
 
 // True when 'order' (see CompareOrdered()) satisfies 'ordering'; never for TOrder::Unordered.
-bool OrderingHolds(TOrder::Type order, TOrdering::Type ordering);
+bool OrderingHolds(TOrder order, TOrdering ordering);
 // The operator for 'ordering' in a failure message, e.g. ">=".
-char const* OrderingSymbol(TOrdering::Type ordering);
+char const* OrderingSymbol(TOrdering ordering);
 
 // A string's text as Unicode (empty for nullptr): narrow text is read as UTF-8, and an AnsiString in the system code
 // page.
@@ -954,13 +942,13 @@ template <typename T>
 struct TValueCannotBeEmpty;
 
 template <typename T>
-TEmptiness::Type ValueEmptiness(T const& value, TValueKindContainer /*kind*/)
+TEmptiness ValueEmptiness(T const& value, TValueKindContainer /*kind*/)
 {
     return value.empty() ? TEmptiness::Empty : TEmptiness::NotEmpty;
 }
 
 template <typename T>
-TEmptiness::Type ValueEmptiness(T const& value, TValueKindNarrowString /*kind*/)
+TEmptiness ValueEmptiness(T const& value, TValueKindNarrowString /*kind*/)
 {
     if (IsNullString(value))
         return TEmptiness::NullString;
@@ -969,19 +957,19 @@ TEmptiness::Type ValueEmptiness(T const& value, TValueKindNarrowString /*kind*/)
 }
 
 template <typename T>
-TEmptiness::Type ValueEmptiness(T const& value, TValueKindRTLString /*kind*/)
+TEmptiness ValueEmptiness(T const& value, TValueKindRTLString /*kind*/)
 {
     return UnicodeText(value).IsEmpty() ? TEmptiness::Empty : TEmptiness::NotEmpty;
 }
 
 template <typename T>
-TEmptiness::Type ValueEmptiness(T const& /*value*/, TValueKindUnsupported /*kind*/)
+TEmptiness ValueEmptiness(T const& /*value*/, TValueKindUnsupported /*kind*/)
 {
     return (sizeof(TValueCannotBeEmpty<T>) == 0) ? TEmptiness::NotEmpty : TEmptiness::NotEmpty;
 }
 
 template <typename T>
-TEmptiness::Type ValueEmptiness(T const& value, TValueKindWideString /*kind*/)
+TEmptiness ValueEmptiness(T const& value, TValueKindWideString /*kind*/)
 {
     if (IsNullString(value))
         return TEmptiness::NullString;
@@ -991,7 +979,7 @@ TEmptiness::Type ValueEmptiness(T const& value, TValueKindWideString /*kind*/)
 
 // Whether 'value' (a string or a container) is empty, not empty, or a null C string.
 template <typename T>
-TEmptiness::Type ValueEmptiness(T const& value)
+TEmptiness ValueEmptiness(T const& value)
 {
     typedef typename TEmptinessKind<T>::Type TKind;
 
@@ -1054,7 +1042,7 @@ std::string EmptyFailure(T const& value)
 template <typename T>
 std::string NotEmptyFailure(T const& value)
 {
-    TEmptiness::Type const emptiness = ValueEmptiness(value);
+    TEmptiness const emptiness = ValueEmptiness(value);
 
     if (emptiness == TEmptiness::NotEmpty)
         return std::string();
@@ -1200,13 +1188,13 @@ struct TCommonFloatingPoint
 };
 
 template <typename T>
-TOrder::Type ThreeWayCompare(T a, T b)
+TOrder ThreeWayCompare(T a, T b)
 {
     return (a < b) ? TOrder::Less : ((b < a) ? TOrder::Greater : TOrder::Equal);
 }
 
 template <typename TValue, typename TBound>
-TOrder::Type CompareOrdered(TValue const& value, TBound const& bound, TValueKindFloatingPoint /*kind*/)
+TOrder CompareOrdered(TValue const& value, TBound const& bound, TValueKindFloatingPoint /*kind*/)
 {
     typedef typename TCommonFloatingPoint<TValue, TBound>::Type TCommon;
 
@@ -1222,7 +1210,7 @@ TOrder::Type CompareOrdered(TValue const& value, TBound const& bound, TValueKind
 }
 
 template <typename TValue, typename TBound>
-TOrder::Type CompareOrdered(TValue const& value, TBound const& bound, TValueKindInteger /*kind*/)
+TOrder CompareOrdered(TValue const& value, TBound const& bound, TValueKindInteger /*kind*/)
 {
     bool const valueNegative = IsNegativeInteger(value);
 
@@ -1236,14 +1224,14 @@ TOrder::Type CompareOrdered(TValue const& value, TBound const& bound, TValueKind
 }
 
 template <typename TValue, typename TBound>
-TOrder::Type CompareOrdered(TValue const& /*value*/, TBound const& /*bound*/, TValueKindUnsupported /*kind*/)
+TOrder CompareOrdered(TValue const& /*value*/, TBound const& /*bound*/, TValueKindUnsupported /*kind*/)
 {
     return (sizeof(TValuesCannotBeOrdered<TValue, TBound>) == 0) ? TOrder::Unordered : TOrder::Unordered;
 }
 
 // How 'value' compares with 'bound'.
 template <typename TValue, typename TBound>
-TOrder::Type CompareOrdered(TValue const& value, TBound const& bound)
+TOrder CompareOrdered(TValue const& value, TBound const& bound)
 {
     typedef typename TOrderingPairKind<typename TOrderingKind<TValue>::Type, typename TOrderingKind<TBound>::Type>::Type
         TKind;
@@ -1298,7 +1286,7 @@ void DescribeOrderedValues(TValue const& value, TBound const& bound, std::string
 /////////////////////////////////////////////////////////////////////////////
 
 template <typename TText, typename TPart>
-bool TextHasPart(TText const& text, TPart const& part, TTextPart::Type where, bool ignoreCase,
+bool TextHasPart(TText const& text, TPart const& part, TTextPart where, bool ignoreCase,
     TValueKindNarrowString /*kind*/)
 {
     return !IsNullString(text) && !IsNullString(part) && HasPart(NarrowText(text), NarrowText(part), where,
@@ -1306,7 +1294,7 @@ bool TextHasPart(TText const& text, TPart const& part, TTextPart::Type where, bo
 }
 
 template <typename TText, typename TPart>
-bool TextHasPart(TText const& text, TPart const& part, TTextPart::Type where, bool ignoreCase,
+bool TextHasPart(TText const& text, TPart const& part, TTextPart where, bool ignoreCase,
     TValueKindRTLString /*kind*/)
 {
     return !IsNullString(text) && !IsNullString(part) && HasPart(WideText(UnicodeText(text)),
@@ -1314,21 +1302,21 @@ bool TextHasPart(TText const& text, TPart const& part, TTextPart::Type where, bo
 }
 
 template <typename TText, typename TPart>
-bool TextHasPart(TText const& text, TPart const& part, TTextPart::Type where, bool ignoreCase,
+bool TextHasPart(TText const& text, TPart const& part, TTextPart where, bool ignoreCase,
     TValueKindWideString /*kind*/)
 {
     return !IsNullString(text) && !IsNullString(part) && HasPart(WideText(text), WideText(part), where, ignoreCase);
 }
 
 template <typename TText, typename TPart>
-bool TextHasPart(TText const& /*text*/, TPart const& /*part*/, TTextPart::Type /*where*/, bool /*ignoreCase*/,
+bool TextHasPart(TText const& /*text*/, TPart const& /*part*/, TTextPart /*where*/, bool /*ignoreCase*/,
     TValueKindUnsupported /*kind*/)
 {
     return sizeof(TValuesAreNotTexts<TText, TPart>) != 0;
 }
 
 template <typename TText, typename TPart>
-bool TextHasPart(TText const& text, TPart const& part, TTextPart::Type where, bool ignoreCase)
+bool TextHasPart(TText const& text, TPart const& part, TTextPart where, bool ignoreCase)
 {
     typedef typename TValuePairKind<typename TValueKind<TText>::Type, typename TValueKind<TPart>::Type>::Type
         TPairKind;

@@ -280,9 +280,9 @@ void __fastcall TTest_ASWUnitTestsBCB_Utils::Test_TOptional()
     CheckEquals("x", text.Value(), ASWBCB_HERE, "a class type");
     CheckEquals("", TOptional<std::string>().Value(), ASWBCB_HERE, "a class type, T() without a value");
 
-    TOptional<TTestOutcome::Type> const noEnum;
+    TOptional<TTestOutcome> const noEnum;
     CheckEquals(0, static_cast<int>(noEnum.Value()), ASWBCB_HERE, "an enum: zero without a value");
-    CheckEquals(TTestOutcome::Fail, TOptional<TTestOutcome::Type>(TTestOutcome::Fail).Value(), ASWBCB_HERE, "an enum");
+    CheckEquals(TTestOutcome::Fail, TOptional<TTestOutcome>(TTestOutcome::Fail).Value(), ASWBCB_HERE, "an enum");
 }
 //---------------------------------------------------------------------------
 void __fastcall TTest_ASWUnitTestsBCB_Utils::Test_ToUTF8_NonASCII()

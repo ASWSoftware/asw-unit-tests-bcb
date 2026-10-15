@@ -46,6 +46,7 @@ __published:
     void __fastcall Test_ClassNames();
     void __fastcall Test_Emptiness();
     void __fastcall Test_Enums();
+    void __fastcall Test_Enums_Scoped();
     void __fastcall Test_FloatingPoint_Fixed();
     void __fastcall Test_Integers_MixedTypes();
     void __fastcall Test_Integers_SameTypePairs();

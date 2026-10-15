@@ -68,7 +68,7 @@ public:
 std::string Joined(std::vector<std::size_t> const& indexes);
 std::string Joined(std::vector<std::string> const& names);
 ASWUnitTestsBCB::TTestCaseRecord Record(std::string const& groupName, std::string const& testName,
-    double durationSeconds, ASWUnitTestsBCB::TTestOutcome::Type outcome, std::string const& message);
+    double durationSeconds, ASWUnitTestsBCB::TTestOutcome outcome, std::string const& message);
 std::vector<ASWUnitTestsBCB::TTestId> SampleTests();
 std::vector<ASWUnitTestsBCB::TTestId> SuiteTests();
 
@@ -96,7 +96,7 @@ std::string Joined(std::vector<std::string> const& names)
 }
 //---------------------------------------------------------------------------
 ASWUnitTestsBCB::TTestCaseRecord Record(std::string const& groupName, std::string const& testName,
-    double durationSeconds, ASWUnitTestsBCB::TTestOutcome::Type outcome, std::string const& message)
+    double durationSeconds, ASWUnitTestsBCB::TTestOutcome outcome, std::string const& message)
 {
     ASWUnitTestsBCB::TTestCaseRecord record;
     record.GroupName = groupName;
@@ -304,7 +304,7 @@ void __fastcall TTest_ASWUnitTestsBCB_GUI_TestList::Test_GroupStatus_ShowsRunnin
     // Arrange
     TGUITestList list;
     list.Load(SampleTests());
-    TGUITestStatus::Type const beforeRun = list.GroupStatus("Alpha");
+    TGUITestStatus const beforeRun = list.GroupStatus("Alpha");
 
     // Act, and Assert as the group's tests progress
     list.SetStatus(0, TGUITestStatus::Passed);
@@ -457,9 +457,9 @@ void __fastcall TTest_ASWUnitTestsBCB_GUI_TestList::Test_SetChecked_UpdatesItsGr
 
     // Act
     list.SetChecked(0, false);
-    TGUICheckState::Type const oneUnchecked = list.GroupCheckState("Alpha");
+    TGUICheckState const oneUnchecked = list.GroupCheckState("Alpha");
     list.SetChecked(1, false);
-    TGUICheckState::Type const bothUnchecked = list.GroupCheckState("Alpha");
+    TGUICheckState const bothUnchecked = list.GroupCheckState("Alpha");
 
     // Assert
     CheckEquals(TGUICheckState::Partial, oneUnchecked, ASWBCB_HERE, "some of a group's tests checked: partial");
@@ -629,7 +629,7 @@ void __fastcall TTest_ASWUnitTestsBCB_GUI_TestList::Test_SuiteStatus_IncludesThe
     // Arrange
     TGUITestList list;
     list.Load(SuiteTests());
-    TGUITestStatus::Type const beforeRun = list.SuiteStatus("Outer");
+    TGUITestStatus const beforeRun = list.SuiteStatus("Outer");
 
     // Act, and assert as the suite's tests progress
     list.SetStatus(3, TGUITestStatus::Passed);

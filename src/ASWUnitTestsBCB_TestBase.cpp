@@ -568,19 +568,19 @@ bool TTestGroupBase::CallHook(THook hook, ITestCase* testCase, THookError& error
     {
         switch (hook)
         {
-            case HookSetUpGroup:
+            case THook::SetUpGroup:
                 SetUp_Group();
                 break;
 
-            case HookSetUpTest:
+            case THook::SetUpTest:
                 SetUp_Test(*testCase);
                 break;
 
-            case HookTearDownGroup:
+            case THook::TearDownGroup:
                 TearDown_Group();
                 break;
 
-            case HookTearDownTest:
+            case THook::TearDownTest:
                 TearDown_Test(*testCase);
                 break;
         }
@@ -786,7 +786,7 @@ std::vector<TPublishedTest> TTestGroupBase::FindPublishedTests(TClass groupClass
     return tests;
 }
 //---------------------------------------------------------------------------
-void TTestGroupBase::FinishTest(ITestCase& testCase, TTestOutcome::Type outcome, std::string const& detail,
+void TTestGroupBase::FinishTest(ITestCase& testCase, TTestOutcome outcome, std::string const& detail,
     double durationMs)
 {
     // A test abandoned on a worker thread, which ends after all, gets no record or log line: it already has its
@@ -797,7 +797,7 @@ void TTestGroupBase::FinishTest(ITestCase& testCase, TTestOutcome::Type outcome,
     std::string const testFullName = m_QualifiedName + "." + testCase.GetName();
     std::string status;
     std::string tag;
-    TLogKind::Type kind = TLogKind::Pass;
+    TLogKind kind = TLogKind::Pass;
 
     switch (outcome)
     {
@@ -1017,7 +1017,7 @@ void TTestGroupBase::Run(ITestFilter const* filter, TOptional<unsigned int> shuf
     THookError error;
     std::string failureDetail;
 
-    if (!CallHook(HookSetUpGroup, nullptr, error))
+    if (!CallHook(THook::SetUpGroup, nullptr, error))
     {
         failureDetail = "SetUp_Group() exception: " + error.Description;
         Log("!!ERROR!!: SetUp_Group() exception for group \"" + m_QualifiedName + "\": " + error.Description);
@@ -1027,7 +1027,7 @@ void TTestGroupBase::Run(ITestFilter const* filter, TOptional<unsigned int> shuf
 
     Log("[" + GetUTCTimeISO8601() + "] Tearing down group: \"" + m_QualifiedName + "\"");
 
-    if (!CallHook(HookTearDownGroup, nullptr, error))
+    if (!CallHook(THook::TearDownGroup, nullptr, error))
         ThrowFatalError("TearDown_Group()", "group \"" + m_QualifiedName + "\"", error);
 }
 //---------------------------------------------------------------------------
@@ -1197,7 +1197,7 @@ bool TTestGroupBase::RunWithTimeout(ITestCase& testCase, TOptional<unsigned int>
 }
 //---------------------------------------------------------------------------
 void TTestGroupBase::ScoreExpectedException(bool typeMatches, std::string const& message,
-    std::string const& description, TTestOutcome::Type& outcome, std::string& detail)
+    std::string const& description, TTestOutcome& outcome, std::string& detail)
 {
     if (!typeMatches)
     {
@@ -1353,10 +1353,10 @@ void TTestGroupBase::Test(ITestCase& testCase)
 
     THookError error;
 
-    if (!CallHook(HookSetUpTest, &testCase, error))
+    if (!CallHook(THook::SetUpTest, &testCase, error))
         ThrowFatalError("SetUp_Test()", "\"" + testFullName + "\"", error);
 
-    TTestOutcome::Type outcome = TTestOutcome::Pass;
+    TTestOutcome outcome = TTestOutcome::Pass;
     std::string detail;
 
     try
@@ -1427,7 +1427,7 @@ void TTestGroupBase::Test(ITestCase& testCase)
         }
     }
 
-    if (!CallHook(HookTearDownTest, &testCase, error))
+    if (!CallHook(THook::TearDownTest, &testCase, error))
         ThrowFatalError("TearDown_Test()", "\"" + testFullName + "\"", error);
 
     // Every path that would otherwise pass the test, an expected exception arriving included, gets here, so none

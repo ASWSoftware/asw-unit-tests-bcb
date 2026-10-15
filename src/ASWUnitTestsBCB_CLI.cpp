@@ -390,7 +390,7 @@ bool TCLIParser::ParseArguments(std::vector<std::string> const& args, TCLIOption
         else if (IsValueOption(arg, "--color"))
         {
             std::string value;
-            TOptional<TColorMode::Type> parsed;
+            TOptional<TColorMode> parsed;
 
             if (TakeOptionValue(args, i, value))
                 parsed = ParseColorMode(value);
@@ -417,7 +417,7 @@ bool TCLIParser::ParseArguments(std::vector<std::string> const& args, TCLIOption
                 return false;
             }
 
-            TOptional<TConsoleColor::Type> const parsed = TConsole::ParseColorName(value);
+            TOptional<TConsoleColor> const parsed = TConsole::ParseColorName(value);
 
             if (!parsed.HasValue())
             {
@@ -492,7 +492,7 @@ bool TCLIParser::ParseArguments(std::vector<std::string> const& args, TCLIOption
     return true;
 }
 //---------------------------------------------------------------------------
-TOptional<TColorMode::Type> TCLIParser::ParseColorMode(std::string const& text)
+TOptional<TColorMode> TCLIParser::ParseColorMode(std::string const& text)
 {
     if (text == "auto")
         return TColorMode::Auto;
@@ -503,7 +503,7 @@ TOptional<TColorMode::Type> TCLIParser::ParseColorMode(std::string const& text)
     if (text == "never")
         return TColorMode::Never;
 
-    return TOptional<TColorMode::Type>();
+    return TOptional<TColorMode>();
 }
 //---------------------------------------------------------------------------
 TOptional<unsigned int> TCLIParser::ParseUnsignedInt(std::string const& text)
@@ -573,7 +573,7 @@ std::vector<TJUnitTestCase> ToJUnitTestCases(std::vector<TTestCaseRecord> const&
     for (std::size_t i = 0; i < records.size(); ++i)
     {
         TTestCaseRecord const& record = records[i];
-        TJUnitOutcome::Type outcome = TJUnitOutcome::Pass;
+        TJUnitOutcome outcome = TJUnitOutcome::Pass;
 
         if (record.Outcome == TTestOutcome::Fail)
             outcome = TJUnitOutcome::Fail;

@@ -92,11 +92,29 @@ enum ESigned
     PlusFive = 5
 };
 
+enum class EScopedColor
+{
+    Red,
+    Green,
+    Blue,
+};
+
+enum class EScopedSigned : short
+{
+    MinusThree = -3,
+    PlusThree = 3,
+};
+
 struct TOuter
 {
     enum EInner
     {
         InnerTwo = 2
+    };
+
+    enum class EScopedInner
+    {
+        Two = 2,
     };
 };
 
@@ -361,6 +379,21 @@ void __fastcall TTest_ASWUnitTestsBCB_Values::Test_Enums()
     CheckEquals("\"1\" vs \"0\"", Compare(Small, static_cast<__int64>(0)), ASWBCB_HERE);
 }
 //---------------------------------------------------------------------------
+void __fastcall TTest_ASWUnitTestsBCB_Values::Test_Enums_Scoped()
+{
+    EScopedColor const color = EScopedColor::Blue;
+
+    CheckEquals("equal", Compare(EScopedColor::Blue, color), ASWBCB_HERE);
+    CheckEquals("\"0\" vs \"2\"", Compare(EScopedColor::Red, color), ASWBCB_HERE, "described as numbers");
+    CheckEquals("equal", Compare(TOuter::EScopedInner::Two, EScopedColor::Blue), ASWBCB_HERE,
+        "an enum class declared in a class, with another enum type with the same value");
+    CheckEquals("equal", Compare(EScopedColor::Green, 1), ASWBCB_HERE, "an enum class and an int, as any enum");
+    CheckEquals("\"-3\" vs \"3\"", Compare(EScopedSigned::MinusThree, EScopedSigned::PlusThree), ASWBCB_HERE,
+        "a negative value of a declared underlying type");
+    CheckEquals(EScopedColor::Blue, color, ASWBCB_HERE, "CheckEquals() takes an enum class");
+    CheckNotEquals(EScopedColor::Red, color, ASWBCB_HERE, "CheckNotEquals() takes an enum class");
+}
+//---------------------------------------------------------------------------
 void __fastcall TTest_ASWUnitTestsBCB_Values::Test_FloatingPoint_Fixed()
 {
     CheckEquals("0.100000", DescribeFixed(0.1), ASWBCB_HERE);
@@ -561,8 +594,8 @@ void __fastcall TTest_ASWUnitTestsBCB_Values::Test_Ordering_Describe()
 //---------------------------------------------------------------------------
 void __fastcall TTest_ASWUnitTestsBCB_Values::Test_Ordering_Holds()
 {
-    TOrder::Type const orders[] = { TOrder::Less, TOrder::Equal, TOrder::Greater, TOrder::Unordered };
-    TOrdering::Type const orderings[] = {
+    TOrder const orders[] = { TOrder::Less, TOrder::Equal, TOrder::Greater, TOrder::Unordered };
+    TOrdering const orderings[] = {
         TOrdering::GreaterThan, TOrdering::GreaterThanOrEqual, TOrdering::LessThan, TOrdering::LessThanOrEqual
     };
     // For each ordering, whether each order (less, equal, greater, unordered) satisfies it.

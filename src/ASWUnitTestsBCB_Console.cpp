@@ -47,7 +47,7 @@ namespace
 struct TColorName
 {
     char const* Name;
-    TConsoleColor::Type Color;
+    TConsoleColor Color;
 };
 
 TColorName const ColorNames[] =
@@ -71,22 +71,22 @@ TColorName const ColorNames[] =
     { "bright-white", TConsoleColor::BrightWhite }
 };
 
-TColorMode::Type g_ColorMode = TColorMode::Auto;
+TColorMode g_ColorMode = TColorMode::Auto;
 HANDLE g_ColorCheckedOutput = INVALID_HANDLE_VALUE; // The standard output DetectColorSupport() last checked
 bool g_ColorSupported = false;                      // What it found
-TConsoleColor::Type g_FailColor = TConsoleColor::Red;
-TConsoleColor::Type g_PassColor = TConsoleColor::Green;
-TConsoleColor::Type g_SkipColor = TConsoleColor::Yellow;
+TConsoleColor g_FailColor = TConsoleColor::Red;
+TConsoleColor g_PassColor = TConsoleColor::Green;
+TConsoleColor g_SkipColor = TConsoleColor::Yellow;
 
 //---------------------------------------------------------------------------
 
-char const* AnsiCode(TConsoleColor::Type color);
+char const* AnsiCode(TConsoleColor color);
 bool DetectColorSupport(HANDLE output);
 bool NoColorRequested();
 
 //---------------------------------------------------------------------------
 // The escape sequence that sets 'color' as the text color.
-char const* AnsiCode(TConsoleColor::Type color)
+char const* AnsiCode(TConsoleColor color)
 {
     static char const* const codes[] =
     {
@@ -109,7 +109,7 @@ char const* AnsiCode(TConsoleColor::Type color)
         "\x1b[97m"  // BrightWhite
     };
 
-    return codes[color];
+    return codes[static_cast<int>(color)];
 }
 //---------------------------------------------------------------------------
 // Whether 'output' is a console that shows escape sequences, turning its virtual terminal processing on. Output
@@ -148,7 +148,7 @@ namespace ASWUnitTestsBCB
 /////////////////////////////////////////////////////////////////////////////
 
 //---------------------------------------------------------------------------
-std::string TConsole::Colorize(std::string const& text, TLogKind::Type kind)
+std::string TConsole::Colorize(std::string const& text, TLogKind kind)
 {
     if ((kind == TLogKind::Info) || !IsColorEnabled())
         return text;
@@ -156,7 +156,7 @@ std::string TConsole::Colorize(std::string const& text, TLogKind::Type kind)
     return AnsiCode(GetColor(kind)) + text + "\x1b[0m";
 }
 //---------------------------------------------------------------------------
-TConsoleColor::Type TConsole::GetColor(TLogKind::Type kind)
+TConsoleColor TConsole::GetColor(TLogKind kind)
 {
     switch (kind)
     {
@@ -175,7 +175,7 @@ TConsoleColor::Type TConsole::GetColor(TLogKind::Type kind)
     }
 }
 //---------------------------------------------------------------------------
-TColorMode::Type TConsole::GetColorMode()
+TColorMode TConsole::GetColorMode()
 {
     return g_ColorMode;
 }
@@ -204,7 +204,7 @@ bool TConsole::IsColorEnabled()
     return g_ColorSupported;
 }
 //---------------------------------------------------------------------------
-TOptional<TConsoleColor::Type> TConsole::ParseColorName(std::string const& name)
+TOptional<TConsoleColor> TConsole::ParseColorName(std::string const& name)
 {
     for (std::size_t i = 0; i < (sizeof(ColorNames) / sizeof(ColorNames[0])); ++i)
     {
@@ -212,10 +212,10 @@ TOptional<TConsoleColor::Type> TConsole::ParseColorName(std::string const& name)
             return ColorNames[i].Color;
     }
 
-    return TOptional<TConsoleColor::Type>();
+    return TOptional<TConsoleColor>();
 }
 //---------------------------------------------------------------------------
-void TConsole::SetColor(TLogKind::Type kind, TConsoleColor::Type color)
+void TConsole::SetColor(TLogKind kind, TConsoleColor color)
 {
     switch (kind)
     {
@@ -237,7 +237,7 @@ void TConsole::SetColor(TLogKind::Type kind, TConsoleColor::Type color)
     }
 }
 //---------------------------------------------------------------------------
-void TConsole::SetColorMode(TColorMode::Type mode)
+void TConsole::SetColorMode(TColorMode mode)
 {
     g_ColorMode = mode;
 }

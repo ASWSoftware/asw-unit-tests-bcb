@@ -44,14 +44,11 @@ namespace ASWUnitTestsBCB
 // A group's or suite's check state in the VCL GUI runner's test tree: all,
 // none, or only some of its tests checked.
 /////////////////////////////////////////////////////////////////////////////
-struct TGUICheckState
+enum class TGUICheckState
 {
-    enum Type
-    {
-        Unchecked,
-        Checked,
-        Partial,
-    };
+    Unchecked,
+    Checked,
+    Partial,
 };
 
 
@@ -62,16 +59,13 @@ struct TGUICheckState
 // order of the tree's status image list, so a status converts directly to
 // its image index.
 /////////////////////////////////////////////////////////////////////////////
-struct TGUITestStatus
+enum class TGUITestStatus
 {
-    enum Type
-    {
-        NotRun,
-        Running,
-        Passed,
-        Failed,
-        Skipped,
-    };
+    NotRun,
+    Running,
+    Passed,
+    Failed,
+    Skipped,
 };
 
 // 'qualifiedName' (a group's qualified name, or a suite's path) without the 'suitePath' it's in and the '.' after
@@ -82,9 +76,9 @@ std::string NameInSuite(std::string const& qualifiedName, std::string const& sui
 // suite.
 std::string ParentSuitePath(std::string const& suitePath);
 // The status a finished test's recorded outcome corresponds to.
-TGUITestStatus::Type StatusFromOutcome(TTestOutcome::Type outcome);
+TGUITestStatus StatusFromOutcome(TTestOutcome outcome);
 // A status as shown to the user, e.g. "Not run".
-std::string StatusName(TGUITestStatus::Type status);
+std::string StatusName(TGUITestStatus status);
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -149,7 +143,7 @@ private:
     std::map<std::string, std::string> m_GroupSuitePaths;
     std::map<std::pair<std::string, std::string>, std::size_t> m_IndexByName;
     std::vector<TOptional<TGUITestResult> > m_Results;
-    std::vector<TGUITestStatus::Type> m_Statuses;
+    std::vector<TGUITestStatus> m_Statuses;
     std::map<std::string, std::size_t> m_SuiteIndexByPath;
     std::vector<std::string> m_SuitePaths;
     std::vector<TTestId> m_Tests;
@@ -157,12 +151,12 @@ private:
 
 private:
     // The check state of the tests at 'indexes': all, none, or only some of them checked.
-    TGUICheckState::Type CheckStateOf(std::vector<std::size_t> const& indexes) const;
+    TGUICheckState CheckStateOf(std::vector<std::size_t> const& indexes) const;
     // A group's or suite's detail pane text: its name, then how many of the tests at 'indexes' have each status.
     std::string DetailTextOf(std::string const& name, std::vector<std::size_t> const& indexes) const;
     std::string FullName(std::size_t index) const;
     // The status shown for the tests at 'indexes' together; see GroupStatus().
-    TGUITestStatus::Type StatusOf(std::vector<std::size_t> const& indexes) const;
+    TGUITestStatus StatusOf(std::vector<std::size_t> const& indexes) const;
 
 public:
     // Number of visible tests that are checked.
@@ -183,13 +177,13 @@ public:
     // A filter matching every test that failed in this run, visible or not, for Run Failed.
     TGUITestNamesFilter FailedFilter() const;
     // A group's check state, from its visible tests; Unchecked if none are visible.
-    TGUICheckState::Type GroupCheckState(std::string const& groupName) const;
+    TGUICheckState GroupCheckState(std::string const& groupName) const;
     // The detail pane's text for a group: its name and how many of its visible tests have each status.
     std::string GroupDetailText(std::string const& groupName) const;
     std::vector<std::string> const& GroupNames() const;
     // The status shown for a group, from its visible tests: Running while any of them is; otherwise the worst
     // outcome among those that ran (Failed, then Skipped, then Passed); NotRun if none did.
-    TGUITestStatus::Type GroupStatus(std::string const& groupName) const;
+    TGUITestStatus GroupStatus(std::string const& groupName) const;
     // The path of the suite a group is in; empty if it isn't in one, or isn't a group in the list.
     std::string GroupSuitePath(std::string const& groupName) const;
     // The index of the test with these names, or no value if there isn't one.
@@ -209,16 +203,16 @@ public:
     void SetGroupChecked(std::string const& groupName, bool checked);
     // Stores a finished test's result, and sets its status from the record's outcome.
     void SetResult(std::size_t index, TTestCaseRecord const& record, std::string const& log);
-    void SetStatus(std::size_t index, TGUITestStatus::Type status);
+    void SetStatus(std::size_t index, TGUITestStatus status);
     // Checks or unchecks a suite's visible tests, including those in the suites inside it.
     void SetSuiteChecked(std::string const& suitePath, bool checked);
     // Shows only the tests 'filter' matches by full name.
     void SetVisibleFilter(ITestFilter const* filter);
-    TGUITestStatus::Type Status(std::size_t index) const;
+    TGUITestStatus Status(std::size_t index) const;
     // Number of tests with this status, visible or not.
-    std::size_t StatusCount(TGUITestStatus::Type status) const;
+    std::size_t StatusCount(TGUITestStatus status) const;
     // A suite's check state, from its visible tests, like GroupCheckState().
-    TGUICheckState::Type SuiteCheckState(std::string const& suitePath) const;
+    TGUICheckState SuiteCheckState(std::string const& suitePath) const;
     // The detail pane's text for a suite: its path and how many of its visible tests have each status.
     std::string SuiteDetailText(std::string const& suitePath) const;
     // The index of a suite in SuitePaths(), or no value if there isn't one with this path.
@@ -226,7 +220,7 @@ public:
     // Every suite's path, each after the suite holding it.
     std::vector<std::string> const& SuitePaths() const;
     // The status shown for a suite, from its visible tests, like GroupStatus().
-    TGUITestStatus::Type SuiteStatus(std::string const& suitePath) const;
+    TGUITestStatus SuiteStatus(std::string const& suitePath) const;
     TTestId const& Test(std::size_t index) const;
     // Indexes of 'groupName''s visible tests, in order.
     std::vector<std::size_t> TestsInGroup(std::string const& groupName) const;

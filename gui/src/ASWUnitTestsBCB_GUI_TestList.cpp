@@ -54,7 +54,7 @@ std::string ParentSuitePath(std::string const& suitePath)
     return (dot == std::string::npos) ? std::string() : suitePath.substr(0, dot);
 }
 //---------------------------------------------------------------------------
-TGUITestStatus::Type StatusFromOutcome(TTestOutcome::Type outcome)
+TGUITestStatus StatusFromOutcome(TTestOutcome outcome)
 {
     switch (outcome)
     {
@@ -71,7 +71,7 @@ TGUITestStatus::Type StatusFromOutcome(TTestOutcome::Type outcome)
     return TGUITestStatus::Failed;
 }
 //---------------------------------------------------------------------------
-std::string StatusName(TGUITestStatus::Type status)
+std::string StatusName(TGUITestStatus status)
 {
     switch (status)
     {
@@ -176,7 +176,7 @@ void TGUITestList::CheckOnlyFailed()
     }
 }
 //---------------------------------------------------------------------------
-TGUICheckState::Type TGUITestList::CheckStateOf(std::vector<std::size_t> const& indexes) const
+TGUICheckState TGUITestList::CheckStateOf(std::vector<std::size_t> const& indexes) const
 {
     std::size_t checked = 0;
 
@@ -235,21 +235,21 @@ std::string TGUITestList::DetailText(std::size_t index) const
 //---------------------------------------------------------------------------
 std::string TGUITestList::DetailTextOf(std::string const& name, std::vector<std::size_t> const& indexes) const
 {
-    unsigned int counts[TGUITestStatus::Skipped + 1] = { 0 }; // By TGUITestStatus
+    unsigned int counts[static_cast<std::size_t>(TGUITestStatus::Skipped) + 1] = { 0 }; // By TGUITestStatus
 
     for (std::size_t i = 0; i < indexes.size(); ++i)
-        ++counts[m_Statuses[indexes[i]]];
+        ++counts[static_cast<std::size_t>(m_Statuses[indexes[i]])];
 
     std::ostringstream text;
     text << name << "\n";
     text << indexes.size() << ((indexes.size() == 1) ? " test: " : " tests: ");
-    text << counts[TGUITestStatus::Passed] << " passed, ";
-    text << counts[TGUITestStatus::Failed] << " failed, ";
-    text << counts[TGUITestStatus::Skipped] << " skipped, ";
-    text << counts[TGUITestStatus::NotRun] << " not run";
+    text << counts[static_cast<std::size_t>(TGUITestStatus::Passed)] << " passed, ";
+    text << counts[static_cast<std::size_t>(TGUITestStatus::Failed)] << " failed, ";
+    text << counts[static_cast<std::size_t>(TGUITestStatus::Skipped)] << " skipped, ";
+    text << counts[static_cast<std::size_t>(TGUITestStatus::NotRun)] << " not run";
 
-    if (counts[TGUITestStatus::Running] != 0)
-        text << ", " << counts[TGUITestStatus::Running] << " running";
+    if (counts[static_cast<std::size_t>(TGUITestStatus::Running)] != 0)
+        text << ", " << counts[static_cast<std::size_t>(TGUITestStatus::Running)] << " running";
 
     text << "\n";
     return text.str();
@@ -274,7 +274,7 @@ std::string TGUITestList::FullName(std::size_t index) const
     return m_Tests[index].GroupName + "." + m_Tests[index].TestName;
 }
 //---------------------------------------------------------------------------
-TGUICheckState::Type TGUITestList::GroupCheckState(std::string const& groupName) const
+TGUICheckState TGUITestList::GroupCheckState(std::string const& groupName) const
 {
     return CheckStateOf(TestsInGroup(groupName));
 }
@@ -289,7 +289,7 @@ std::vector<std::string> const& TGUITestList::GroupNames() const
     return m_GroupNames;
 }
 //---------------------------------------------------------------------------
-TGUITestStatus::Type TGUITestList::GroupStatus(std::string const& groupName) const
+TGUITestStatus TGUITestList::GroupStatus(std::string const& groupName) const
 {
     return StatusOf(TestsInGroup(groupName));
 }
@@ -401,7 +401,7 @@ void TGUITestList::SetResult(std::size_t index, TTestCaseRecord const& record, s
     m_Statuses[index] = StatusFromOutcome(record.Outcome);
 }
 //---------------------------------------------------------------------------
-void TGUITestList::SetStatus(std::size_t index, TGUITestStatus::Type status)
+void TGUITestList::SetStatus(std::size_t index, TGUITestStatus status)
 {
     m_Statuses.at(index) = status;
 }
@@ -420,17 +420,17 @@ void TGUITestList::SetVisibleFilter(ITestFilter const* filter)
         m_Visible[i] = (filter == nullptr) || filter->Matches(FullName(i));
 }
 //---------------------------------------------------------------------------
-TGUITestStatus::Type TGUITestList::Status(std::size_t index) const
+TGUITestStatus TGUITestList::Status(std::size_t index) const
 {
     return m_Statuses.at(index);
 }
 //---------------------------------------------------------------------------
-std::size_t TGUITestList::StatusCount(TGUITestStatus::Type status) const
+std::size_t TGUITestList::StatusCount(TGUITestStatus status) const
 {
     return static_cast<std::size_t>(std::count(m_Statuses.begin(), m_Statuses.end(), status));
 }
 //---------------------------------------------------------------------------
-TGUITestStatus::Type TGUITestList::StatusOf(std::vector<std::size_t> const& indexes) const
+TGUITestStatus TGUITestList::StatusOf(std::vector<std::size_t> const& indexes) const
 {
     bool anyRunning = false;
     bool anyFailed = false;
@@ -477,7 +477,7 @@ TGUITestStatus::Type TGUITestList::StatusOf(std::vector<std::size_t> const& inde
     return TGUITestStatus::NotRun;
 }
 //---------------------------------------------------------------------------
-TGUICheckState::Type TGUITestList::SuiteCheckState(std::string const& suitePath) const
+TGUICheckState TGUITestList::SuiteCheckState(std::string const& suitePath) const
 {
     return CheckStateOf(TestsInSuite(suitePath));
 }
@@ -502,7 +502,7 @@ std::vector<std::string> const& TGUITestList::SuitePaths() const
     return m_SuitePaths;
 }
 //---------------------------------------------------------------------------
-TGUITestStatus::Type TGUITestList::SuiteStatus(std::string const& suitePath) const
+TGUITestStatus TGUITestList::SuiteStatus(std::string const& suitePath) const
 {
     return StatusOf(TestsInSuite(suitePath));
 }

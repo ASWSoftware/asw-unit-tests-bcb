@@ -50,10 +50,10 @@ namespace
 class TColorSettingsGuard
 {
 private:
-    ASWUnitTestsBCB::TColorMode::Type m_Mode;
-    ASWUnitTestsBCB::TConsoleColor::Type m_Pass;
-    ASWUnitTestsBCB::TConsoleColor::Type m_Fail;
-    ASWUnitTestsBCB::TConsoleColor::Type m_Skip;
+    ASWUnitTestsBCB::TColorMode m_Mode;
+    ASWUnitTestsBCB::TConsoleColor m_Pass;
+    ASWUnitTestsBCB::TConsoleColor m_Fail;
+    ASWUnitTestsBCB::TConsoleColor m_Skip;
 
     TColorSettingsGuard(TColorSettingsGuard const&);            // Not copyable
     TColorSettingsGuard& operator=(TColorSettingsGuard const&); // Not copyable
@@ -303,7 +303,7 @@ void __fastcall TTest_ASWUnitTestsBCB_Console::Test_ParseColorName()
 
     for (int i = 0; i < static_cast<int>(sizeof(names) / sizeof(names[0])); ++i)
     {
-        TOptional<TConsoleColor::Type> const color = TConsole::ParseColorName(names[i]);
+        TOptional<TConsoleColor> const color = TConsole::ParseColorName(names[i]);
         CheckTrue(color.HasValue(), ASWBCB_HERE, names[i]);
         CheckEquals(i, static_cast<int>(color.Value()), ASWBCB_HERE, names[i]);
     }
