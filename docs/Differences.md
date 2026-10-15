@@ -104,4 +104,4 @@ failure texts.
 | MSVC, MinGW, GCC, Clang, Linux | Not in this edition | ASWUnitTestsBCB is for C++Builder only, and needs the RTL. Use ASWUnitTests. |
 | CMake project and `ASWUnitTests_Sources.cmake` | Not in this edition | RAD Studio projects only. |
 | Version macros | Changed | `ASWUNITTESTSBCB_VERSION_*` macros, without the namespace constants. |
-| `Deploy.bat` | Not in this edition | Add the repository as a git submodule instead. |
+| `Deploy.bat` | Same | |

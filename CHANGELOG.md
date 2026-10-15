@@ -134,6 +134,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   builds or writes the same report for other runners.
 - `rad370/ASWUnitTestsBCB.cbproj` builds the runner with bcc32 (Win32), bcc32c and bcc64x (Win64x),
   with a build script for each compiler and configuration.
+- `Deploy.bat <folder>` copies the framework, the GUI runner, the tests, the projects, their build
+  scripts and the docs to a folder, as in `asw-unit-tests`, e.g. to stage a copy for another
+  repository. It leaves out the files only contributors to this repository use.
 - A VCL GUI runner (`gui/rad370/ASWUnitTestsBCB_GUI.cbproj`), as in `asw-unit-tests`: a tree of
   groups and tests with check boxes and status dots, which View > Expand All and View > Collapse All
   open or close, a filter box, the selected test's details and log, a list of failures and skips,
