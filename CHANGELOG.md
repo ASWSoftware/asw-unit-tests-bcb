@@ -7,6 +7,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-10-15
+
 ### Added
 
 - Test groups whose tests are found, not registered. A group derives from `TTestGroupBase` (a
@@ -81,8 +83,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   with that exception, and the run carries on.
 - A console test runner (`src/main.cpp`) with `asw-unit-tests`' output and exit codes: `0` passed,
   `1` a test failed, `2` or `3` an exception from `SetUp_Test()`, `TearDown_Test()` or
-  `TearDown_Group()` ended the run. The console shows UTF-8 text correctly. `ITestRunObserver`
-  receives the output and each test's result as the run goes.
+  `TearDown_Group()` ended the run. The log starts with the version and whether the build is
+  32-bit or 64-bit, e.g. `ASWUnitTestsBCB - Version 1.0.0 - 64-bit`. The console shows UTF-8 text
+  correctly. `ITestRunObserver` receives the output and each test's result as the run goes.
 - The console runner's command-line options, as in `asw-unit-tests`: `--help` (or `-h`),
   `--version`, `--project-name <name>` (or `--project-name=<name>`), which names the run in the
   `Initializing...` line, and `--pause`, which waits for a key press before the program ends. An
@@ -146,4 +149,5 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   tests between sessions. After a test times out or a stack overflow ends a run, it runs no more
   tests until restarted.
 
-[Unreleased]: https://github.com/ASWSoftware/asw-unit-tests-bcb/commits/develop
+[Unreleased]: https://github.com/ASWSoftware/asw-unit-tests-bcb/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/ASWSoftware/asw-unit-tests-bcb/releases/tag/v1.0.0
