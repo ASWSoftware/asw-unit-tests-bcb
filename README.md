@@ -87,6 +87,14 @@ Requires RAD Studio 13.1 or later.
 Every release is built without warnings and its self-tests pass on bcc32, bcc32c and bcc64x, in
 Debug and optimized Release builds. There's no CI service with RAD Studio, so this is done locally.
 
+# Donations:
+
+If you find ASWUnitTestsBCB helpful, donations are always appreciated:
+
+PayPal: donate@aswsoftware.com
+
+Bitcoin: 15rKqL1numHJyE36ottMbhs5cmCjJkuowV
+
 # How to Use
 
 Important! Run tests outside the debugger, unless you really want to stop at every exception, since
