@@ -429,7 +429,11 @@ void TTestHandler::Initialize(std::string const& projectName, TTestGroupRegistra
 {
     m_ProjectName = projectName;
 
-    Log(GetVersionFullStr());
+#if defined(_WIN64)
+    Log(GetVersionFullStr() + " - 64-bit");
+#else
+    Log(GetVersionFullStr() + " - 32-bit");
+#endif
 
     Log("Initializing test handler and registering test groups for " + m_ProjectName + "...");
     RegisterTestGroups(firstRegistrar);

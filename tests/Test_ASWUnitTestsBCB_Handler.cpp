@@ -590,6 +590,12 @@ void __fastcall TTest_ASWUnitTestsBCB_Handler::Test_Initialize_DuplicateTestName
 void __fastcall TTest_ASWUnitTestsBCB_Handler::Test_Initialize_LogLines()
 {
     // Arrange
+    String expectedBanner = "ASWUnitTestsBCB - Version " ASWUNITTESTSBCB_VERSION_STRING " - ";
+#if defined(_WIN64)
+    expectedBanner += "64-bit";
+#else
+    expectedBanner += "32-bit";
+#endif
     TTestGroupRegistrar const b(CreateTestGroup<TInnerH_B>, __classid(TInnerH_B), "TInnerH_B", "", 0, nullptr);
     TTestGroupRegistrar const a(CreateTestGroup<TInnerH_A>, __classid(TInnerH_A), "TInnerH_A", "", 0, &b);
     TTestHandler handler;
@@ -600,9 +606,8 @@ void __fastcall TTest_ASWUnitTestsBCB_Handler::Test_Initialize_LogLines()
     handler.Initialize("InnerProject", &a);
 
     // Assert
-    CheckEquals("ASWUnitTestsBCB - Version " ASWUNITTESTSBCB_VERSION_STRING "\nInitializing test handler and "
-        "registering test groups for InnerProject...\nTest groups registered: 2\nTotal tests registered: 3\n",
-        observer.LogText, ASWBCB_HERE);
+    CheckEquals(expectedBanner + "\nInitializing test handler and registering test groups for InnerProject...\n"
+        "Test groups registered: 2\nTotal tests registered: 3\n", String(observer.LogText.c_str()), ASWBCB_HERE);
     CheckEquals("InnerProject", handler.GetProjectName(), ASWBCB_HERE);
 }
 //---------------------------------------------------------------------------

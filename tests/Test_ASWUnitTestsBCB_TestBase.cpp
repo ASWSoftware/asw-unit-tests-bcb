@@ -1420,6 +1420,7 @@ void __fastcall TInnerTB_Equals::Test_EqualsIC_Passes()
 {
     CheckEqualsIC("abc", "ABC", ASWBCB_HERE);
     CheckEqualsIC(AnsiString("Abc"), L"aBC", ASWBCB_HERE);
+    CheckEqualsIC(String("Abc"), String("aBC"), ASWBCB_HERE);
     CheckNotEqualsIC("abc", "abd", ASWBCB_HERE);
     CheckNotEqualsIC("abc", "abcd", ASWBCB_HERE);
     AssertEqualsIC(std::wstring(L"x"), "X", ASWBCB_HERE);
