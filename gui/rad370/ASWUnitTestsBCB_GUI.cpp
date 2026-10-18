@@ -25,10 +25,14 @@ limitations under the License.
 
 //---------------------------------------------------------------------------
 #include <exception>
+#include <memory>
 #include <string>
 //---------------------------------------------------------------------------
 #include <System.SysUtils.hpp>
+#include <System.Win.Registry.hpp>
 #include <Vcl.Forms.hpp>
+#include <Vcl.Styles.hpp>
+#include <Vcl.Themes.hpp>
 #include <tchar.h>
 #include <windows.h>
 //---------------------------------------------------------------------------
@@ -45,6 +49,39 @@ USEFORM("..\src\ASWUnitTestsBCB_GUI_MainForm.cpp", FormASWUnitTestsBCBGUIMain);
 using namespace ASWUnitTestsBCB;
 using namespace System;
 using namespace System::Sysutils;
+using namespace System::Win::Registry;
+using namespace Vcl::Themes;
+//---------------------------------------------------------------------------
+
+namespace
+{
+
+// Whether Windows is set to use the dark theme for apps. False when the setting
+// can't be read, as on a Windows version that predates it.
+bool AppsUseDarkMode()
+{
+    try
+    {
+        std::unique_ptr<TRegistry> registry(new TRegistry(KEY_READ));
+        registry->RootKey = HKEY_CURRENT_USER;
+
+        if (registry->OpenKeyReadOnly("Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize") &&
+            registry->ValueExists("AppsUseLightTheme"))
+        {
+            return registry->ReadInteger("AppsUseLightTheme") == 0;
+        }
+    }
+    catch (Exception&)
+    {
+        // Keep the default style
+    }
+
+    return false;
+}
+//---------------------------------------------------------------------------
+
+} // namespace
+
 //---------------------------------------------------------------------------
 int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int)
 {
@@ -56,6 +93,10 @@ int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int)
         Application->Initialize();
         Application->MainFormOnTaskBar = true;
         Application->Title = "ASWUnitTestsBCB";
+
+        // Registered by the project (Custom_Styles); before any form exists, so every form is created styled.
+        if (AppsUseDarkMode())
+            TStyleManager::TrySetStyle("Carbon", false);
 
         // Parsed before the main form exists, so --help, --version, and argument errors are shown on their own and the
         // process exits with the same code the console runner would use, without opening the GUI.
