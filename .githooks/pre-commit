@@ -1,30 +1,55 @@
-#!/bin/sh
+#!/bin/bash
 
 echo "## Git Pre-Commit hook execution"
 
 PrettyExe="uncrustify.exe"
 [[ $(type -P "$PrettyExe") ]] || { echo "$PrettyExe is NOT in PATH" 1>&2; exit 1; }
 
+# Number of parallel jobs: CPU count, capped at 8
+jobs=$(nproc 2>/dev/null || echo "${NUMBER_OF_PROCESSORS:-1}")
+[[ "$jobs" =~ ^[0-9]+$ && "$jobs" -ge 1 ]] || jobs=1
+[ "$jobs" -gt 8 ] && jobs=8
+
+# Collect staged files matching an extended regex into the array "staged_files".
+# Can't use "git diff --cached --name-only" because it doesn't work for leaving out files during an amend.
+# Only files that are fully staged (index status A/C/M/R with an unmodified work tree) are
+# included, so unstaged hunks are never staged by this hook. -z keeps paths with spaces intact.
+collect_staged_files() {
+    staged_files=()
+    local entry status file _orig
+    while IFS= read -r -d '' entry ; do
+        status="${entry:0:2}"
+        file="${entry:3}"
+        # renames and copies are followed by an extra field holding the original path
+        if [[ "${status:0:1}" == [RC] ]]; then
+            IFS= read -r -d '' _orig
+        fi
+        if [[ "$status" == [ACMR]" " && "$file" =~ $1 ]]; then
+            staged_files+=("$file")
+        fi
+    done < <(git status --porcelain -z)
+}
+
 ##########################################################################
 ## UNCRUSTIFY CONFIGURATION                                             ##
 ##########################################################################
 # set uncrustify config location
 UNCRUST_CONFIG=".uncrustify.cfg"
-# get list of staged files
-# This command doesn't work for leaving out files during an amend
-#staged_files=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(c|h|cpp|hpp)$')
-# This command works for regular commits and amend commits
-staged_files=$(git status -s | awk '/^[ACM] / { printf("%s %s %s %s\n", $2, $3, $4, $5) }' | sed -n 's/ *$//p' | tr -d '"' | grep -E '\.(c|h|cpp|hpp)$')
-if [ -n "$staged_files" ]; then
-    echo "## Executing uncrustify..."
-    while IFS= read -r file ; do
-        $PrettyExe -l CPP -c $UNCRUST_CONFIG "$file" --replace --no-backup
-        if [ $? -ne 0 ]; then
-            echo "exit"
-            exit 1
-        fi
-        git add "$file" || exit 1
-    done <<< "$staged_files"
+
+collect_staged_files '\.(c|h|cpp|hpp)$'
+if [ ${#staged_files[@]} -gt 0 ]; then
+    echo "## Executing uncrustify"
+    # One uncrustify process per file, run in parallel.
+    # xargs exits non-zero if any invocation fails.
+    # Each file is reported as it finishes (the wrapper's $1/$2 are the exe and config, $3 is the file).
+    printf '%s\0' "${staged_files[@]}" | xargs -0 -n 1 -P "$jobs" bash -c '
+        "$1" -l CPP -c "$2" -q --replace --no-backup "$3" && echo "   $3" || { echo "   FAILED: $3" >&2; exit 1; }
+    ' _ "$PrettyExe" "$UNCRUST_CONFIG"
+    if [ $? -ne 0 ]; then
+        echo "exit"
+        exit 1
+    fi
+    git add -- "${staged_files[@]}" || exit 1
     echo "## Pretty changes commited"
 else
     echo "## Nothing to make pretty"
