@@ -41,7 +41,6 @@ limitations under the License.
 #include <System.Diagnostics.hpp>
 #include <System.SysUtils.hpp>
 #include <System.TimeSpan.hpp>
-#include <windows.h>
 //---------------------------------------------------------------------------
 #include "ASWUnitTestsBCB_Console.h"
 #include "ASWUnitTestsBCB_CrashGuard.h"

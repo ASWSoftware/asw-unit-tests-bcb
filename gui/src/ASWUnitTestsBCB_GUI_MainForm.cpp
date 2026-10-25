@@ -49,7 +49,6 @@ limitations under the License.
 #include <Vcl.ComCtrls.hpp>
 #include <Vcl.Forms.hpp>
 #include <Vcl.Graphics.hpp>
-#include <windows.h>
 //---------------------------------------------------------------------------
 #include "ASWUnitTestsBCB_CLI.h"
 #include "ASWUnitTestsBCB_Exception.h"
