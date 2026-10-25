@@ -76,13 +76,19 @@ public:
     }
 };
 
+//---------------------------------------------------------------------------
+
 bool IsValueOption(std::string const& arg, std::string const& name);
 void PrintUsage(std::ostream& out);
 bool TakeOptionValue(std::vector<std::string> const& args, std::size_t& index, std::string& value);
 
 //---------------------------------------------------------------------------
-// Whether 'arg' is the option 'name' that takes a value, given either alone (with the value in the next argument) or
-// as "name=value".
+/*
+    IsValueOption
+
+    Whether 'arg' is the option 'name' that takes a value, given either alone (with the value in the next argument) or
+    as "name=value".
+*/
 bool IsValueOption(std::string const& arg, std::string const& name)
 {
     return (arg == name) || (arg.compare(0, name.size() + 1, name + "=") == 0);
@@ -168,8 +174,12 @@ void PrintUsage(std::ostream& out)
     "  --help              Show this message and exit.\n";
 }
 //---------------------------------------------------------------------------
-// Takes the value of the option args[index] (see IsValueOption()): what follows its '=', or else the next argument,
-// which 'index' then moves to. Returns false if the option is alone and the last argument.
+/*
+    TakeOptionValue
+
+    Takes the value of the option args[index] (see IsValueOption()): what follows its '=', or else the next argument,
+    which 'index' then moves to. Returns false if the option is alone and the last argument.
+*/
 bool TakeOptionValue(std::vector<std::string> const& args, std::size_t& index, std::string& value)
 {
     std::string const& arg = args[index];
@@ -190,6 +200,8 @@ bool TakeOptionValue(std::vector<std::string> const& args, std::size_t& index, s
 //---------------------------------------------------------------------------
 
 } // namespace
+
+//---------------------------------------------------------------------------
 
 namespace ASWUnitTestsBCB
 {

@@ -70,6 +70,8 @@ struct TSquare : public TShape
 
 } // namespace TestShapes
 
+//---------------------------------------------------------------------------
+
 namespace
 {
 
@@ -128,9 +130,14 @@ struct TDerived : public TBase
     int DerivedValue;
 };
 
-// Returns "equal" when ValuesEqual() finds 'expected' and 'actual' equal, otherwise how DescribeValue() describes
-// them: "\"expected\" vs \"actual\"". The calls are qualified, since bcc32 doesn't find a function of an enclosing
-// namespace from an anonymous one when an argument has a class type.
+//---------------------------------------------------------------------------
+/*
+    Compare
+
+    Returns "equal" when ValuesEqual() finds 'expected' and 'actual' equal, otherwise how DescribeValue() describes
+    them: "\"expected\" vs \"actual\"". The calls are qualified, since bcc32 doesn't find a function of an enclosing
+    namespace from an anonymous one when an argument has a class type.
+*/
 template <typename TExpected, typename TActual>
 std::string Compare(TExpected const& expected, TActual const& actual)
 {
@@ -140,16 +147,24 @@ std::string Compare(TExpected const& expected, TActual const& actual)
     return "\"" + ASWUnitTestsBCB::DescribeValue(expected) + "\" vs \"" + ASWUnitTestsBCB::DescribeValue(actual) +
         "\"";
 }
+//---------------------------------------------------------------------------
+/*
+    Compare
 
-// "equal" when TextsEqualIgnoringASCIICase() finds 'expected' and 'actual' equal, otherwise "different".
+    "equal" when TextsEqualIgnoringASCIICase() finds 'expected' and 'actual' equal, otherwise "different".
+*/
 template <typename TExpected, typename TActual>
 std::string CompareIC(TExpected const& expected, TActual const& actual)
 {
     return ASWUnitTestsBCB::TextsEqualIgnoringASCIICase(expected, actual) ? "equal" : "different";
 }
+//---------------------------------------------------------------------------
+/*
+    EmptinessOf
 
-// "empty" or "null" when ValueEmptiness() finds 'value' empty or a null C string, otherwise how DescribeContents()
-// describes it.
+    "empty" or "null" when ValueEmptiness() finds 'value' empty or a null C string, otherwise how DescribeContents()
+    describes it.
+*/
 template <typename T>
 std::string EmptinessOf(T const& value)
 {
@@ -167,21 +182,29 @@ std::string EmptinessOf(T const& value)
 
     return ASWUnitTestsBCB::DescribeContents(value);
 }
+//---------------------------------------------------------------------------
+/*
+    MatchOf
 
-// "match" when TextMatchFailure() finds that 'text' matches 'pattern', otherwise why not.
+    "match" when TextMatchFailure() finds that 'text' matches 'pattern', otherwise why not.
+*/
 template <typename TText, typename TPattern>
 std::string MatchOf(TText const& text, TPattern const& pattern)
 {
     std::string const failure = ASWUnitTestsBCB::TextMatchFailure(text, pattern, true);
     return failure.empty() ? std::string("match") : failure;
 }
-
+//---------------------------------------------------------------------------
 bool StartsWithText(std::string const& text, std::string const& prefix)
 {
     return text.compare(0, prefix.size(), prefix) == 0;
 }
+//---------------------------------------------------------------------------
+/*
+    OrderOf
 
-// How CompareOrdered() finds 'value' compares with 'bound': "<", "=", ">" or "unordered".
+    How CompareOrdered() finds 'value' compares with 'bound': "<", "=", ">" or "unordered".
+*/
 template <typename TValue, typename TBound>
 std::string OrderOf(TValue const& value, TBound const& bound)
 {
@@ -202,8 +225,12 @@ std::string OrderOf(TValue const& value, TBound const& bound)
 
     return "?";
 }
+//---------------------------------------------------------------------------
+/*
+    OrderedTexts
 
-// How DescribeOrderedValues() describes 'value' and 'bound': "value, bound".
+    How DescribeOrderedValues() describes 'value' and 'bound': "value, bound".
+*/
 template <typename TValue, typename TBound>
 std::string OrderedTexts(TValue const& value, TBound const& bound)
 {
@@ -213,8 +240,12 @@ std::string OrderedTexts(TValue const& value, TBound const& bound)
     ASWUnitTestsBCB::DescribeOrderedValues(value, bound, valueText, boundText);
     return valueText + ", " + boundText;
 }
+//---------------------------------------------------------------------------
+/*
+    PartsOf
 
-// Where TextHasPart() finds 'part' in 'text': "contains", "starts" and "ends", comma-separated, or "" for none.
+    Where TextHasPart() finds 'part' in 'text': "contains", "starts" and "ends", comma-separated, or "" for none.
+*/
 template <typename TText, typename TPart>
 std::string PartsOf(TText const& text, TPart const& part, bool ignoreCase)
 {
@@ -231,39 +262,53 @@ std::string PartsOf(TText const& text, TPart const& part, bool ignoreCase)
 
     return parts.empty() ? parts : parts.substr(0, parts.size() - 1);
 }
+//---------------------------------------------------------------------------
+/*
+    SameAddressOf
 
-// The address the Same assertions compare for 'value', described.
+    The address the Same assertions compare for 'value', described.
+*/
 template <typename T>
 std::string SameAddressOf(T const& value)
 {
     return ASWUnitTestsBCB::DescribePointer(ASWUnitTestsBCB::TSameAddress<T>::Get(value));
 }
+//---------------------------------------------------------------------------
+/*
+    IsNullValue
 
-// Whether the Null assertions find 'value' null.
+    Whether the Null assertions find 'value' null.
+*/
 template <typename T>
 bool IsNullValue(T const& value)
 {
     return ASWUnitTestsBCB::TNullCheck<T>::IsNull(value);
 }
+//---------------------------------------------------------------------------
+/*
+    Address
 
-// 'pointer''s address as the framework should show it, e.g. "0x12ff40".
+    'pointer''s address as the framework should show it, e.g. "0x12ff40".
+*/
 std::string Address(void const* pointer)
 {
     std::ostringstream stream;
     stream << "0x" << std::hex << reinterpret_cast<std::size_t>(pointer);
     return stream.str();
 }
-
+//---------------------------------------------------------------------------
 void FunctionA()
 {
 }
-
+//---------------------------------------------------------------------------
 void FunctionB()
 {
 }
+//---------------------------------------------------------------------------
 
 } // namespace
 
+//---------------------------------------------------------------------------
 
 namespace ASWUnitTestsBCB
 {

@@ -54,7 +54,11 @@ std::vector<TRect> WorkAreas(TRect const& first);
 std::vector<TRect> WorkAreas(TRect const& first, TRect const& second);
 
 //---------------------------------------------------------------------------
-// An empty, in-memory INI file; nothing is read from or written to disk. The caller owns it.
+/*
+    NewMemIniFile
+
+    An empty, in-memory INI file; nothing is read from or written to disk. The caller owns it.
+*/
 TMemIniFile* NewMemIniFile()
 {
     return new TMemIniFile(UnicodeString());
@@ -75,6 +79,7 @@ std::vector<TRect> WorkAreas(TRect const& first, TRect const& second)
 
 } // namespace
 
+//---------------------------------------------------------------------------
 
 namespace ASWUnitTestsBCB
 {

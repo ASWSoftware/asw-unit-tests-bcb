@@ -58,7 +58,11 @@ std::string FormatSeconds(double seconds)
     return stream.str();
 }
 //---------------------------------------------------------------------------
-// Returns the current UTC time to the second, e.g. "2026-10-12T22:45:12Z".
+/*
+    FormatUTCTimestamp
+
+    Returns the current UTC time to the second, e.g. "2026-10-12T22:45:12Z".
+*/
 std::string FormatUTCTimestamp()
 {
     std::string const withMilliseconds = ASWUnitTestsBCB::GetUTCTimeISO8601(); // "2026-10-12T22:45:12.224Z"

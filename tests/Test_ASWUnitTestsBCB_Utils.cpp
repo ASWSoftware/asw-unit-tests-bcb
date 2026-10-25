@@ -50,7 +50,11 @@ namespace
 std::string Joined(std::vector<std::size_t> const& indices);
 
 //---------------------------------------------------------------------------
-// Returns 'indices' as text, e.g. "1,3,0", for readable failure messages.
+/*
+    Joined
+
+    Returns 'indices' as text, e.g. "1,3,0", for readable failure messages.
+*/
 std::string Joined(std::vector<std::size_t> const& indices)
 {
     std::string text;
@@ -63,6 +67,8 @@ std::string Joined(std::vector<std::size_t> const& indices)
 //---------------------------------------------------------------------------
 
 } // namespace
+
+//---------------------------------------------------------------------------
 
 namespace ASWUnitTestsBCB
 {

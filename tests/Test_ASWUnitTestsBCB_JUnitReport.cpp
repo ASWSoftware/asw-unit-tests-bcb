@@ -51,7 +51,11 @@ std::vector<ASWUnitTestsBCB::TJUnitTestCase> ThreeTestCases();
 std::string WithoutTimestamps(std::string const& xml);
 
 //---------------------------------------------------------------------------
-// Returns the file's bytes as they are.
+/*
+    ReadFileBytes
+
+    Returns the file's bytes as they are.
+*/
 std::string ReadFileBytes(UnicodeString const& path)
 {
     TBytes bytes = TFile::ReadAllBytes(path);
@@ -62,7 +66,11 @@ std::string ReadFileBytes(UnicodeString const& path)
     return std::string(reinterpret_cast<char const*>(&bytes[0]), static_cast<std::string::size_type>(bytes.Length));
 }
 //---------------------------------------------------------------------------
-// Returns a pass and a failure in one group and a skip in another, with text to escape.
+/*
+    ThreeTestCases
+
+    Returns a pass and a failure in one group and a skip in another, with text to escape.
+*/
 std::vector<ASWUnitTestsBCB::TJUnitTestCase> ThreeTestCases()
 {
     using ASWUnitTestsBCB::TJUnitOutcome;
@@ -75,7 +83,11 @@ std::vector<ASWUnitTestsBCB::TJUnitTestCase> ThreeTestCases()
     return testCases;
 }
 //---------------------------------------------------------------------------
-// Returns 'xml' with each timestamp attribute's value replaced by "*", so reports made at different times compare.
+/*
+    WithoutTimestamps
+
+    Returns 'xml' with each timestamp attribute's value replaced by "*", so reports made at different times compare.
+*/
 std::string WithoutTimestamps(std::string const& xml)
 {
     std::string const attribute = "timestamp=\"";
@@ -99,6 +111,8 @@ std::string WithoutTimestamps(std::string const& xml)
 //---------------------------------------------------------------------------
 
 } // namespace
+
+//---------------------------------------------------------------------------
 
 namespace ASWUnitTestsBCB
 {

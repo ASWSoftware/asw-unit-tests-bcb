@@ -40,6 +40,8 @@ using namespace ASWUnitTestsBCB;
 #define ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x0004
 #endif
 
+//---------------------------------------------------------------------------
+
 namespace
 {
 
@@ -85,7 +87,11 @@ bool DetectColorSupport(HANDLE output);
 bool NoColorRequested();
 
 //---------------------------------------------------------------------------
-// The escape sequence that sets 'color' as the text color.
+/*
+    AnsiCode
+
+    The escape sequence that sets 'color' as the text color.
+*/
 char const* AnsiCode(TConsoleColor color)
 {
     static char const* const codes[] =
@@ -112,8 +118,12 @@ char const* AnsiCode(TConsoleColor color)
     return codes[static_cast<int>(color)];
 }
 //---------------------------------------------------------------------------
-// Whether 'output' is a console that shows escape sequences, turning its virtual terminal processing on. Output
-// redirected to a file or a pipe isn't.
+/*
+    DetectColorSupport
+
+    Whether 'output' is a console that shows escape sequences, turning its virtual terminal processing on. Output
+    redirected to a file or a pipe isn't.
+*/
 bool DetectColorSupport(HANDLE output)
 {
     if ((output == INVALID_HANDLE_VALUE) || (output == nullptr))
@@ -127,8 +137,12 @@ bool DetectColorSupport(HANDLE output)
     return ::SetConsoleMode(output, mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING) != 0;
 }
 //---------------------------------------------------------------------------
-// Whether the NO_COLOR environment variable is set to something (https://no-color.org). Read from the process's
-// environment, not the C runtime's copy, so a change made with SetEnvironmentVariable() counts.
+/*
+    NoColorRequested
+
+    Whether the NO_COLOR environment variable is set to something (https://no-color.org). Read from the process's
+    environment, not the C runtime's copy, so a change made with SetEnvironmentVariable() counts.
+*/
 bool NoColorRequested()
 {
     wchar_t value[2];

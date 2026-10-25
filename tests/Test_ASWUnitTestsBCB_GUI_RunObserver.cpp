@@ -143,10 +143,16 @@ public:
     }
 };
 
+//---------------------------------------------------------------------------
+
 void CallOnWorker(ASWUnitTestsBCB::TGUIRunObserver& observer, TObserverThread::TAction action);
 
 //---------------------------------------------------------------------------
-// Runs 'action' on a new thread and waits for it to end.
+/*
+    CallOnWorker
+
+    Runs 'action' on a new thread and waits for it to end.
+*/
 void CallOnWorker(ASWUnitTestsBCB::TGUIRunObserver& observer, TObserverThread::TAction action)
 {
     std::unique_ptr<TObserverThread> const thread(new TObserverThread(observer, action));
@@ -157,6 +163,7 @@ void CallOnWorker(ASWUnitTestsBCB::TGUIRunObserver& observer, TObserverThread::T
 
 } // namespace
 
+//---------------------------------------------------------------------------
 
 namespace ASWUnitTestsBCB
 {
