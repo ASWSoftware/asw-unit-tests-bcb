@@ -49,6 +49,7 @@ limitations under the License.
 #include <Vcl.ComCtrls.hpp>
 #include <Vcl.Forms.hpp>
 #include <Vcl.Graphics.hpp>
+#include <Vcl.Themes.hpp>
 //---------------------------------------------------------------------------
 #include "ASWUnitTestsBCB_CLI.h"
 #include "ASWUnitTestsBCB_Exception.h"
@@ -68,13 +69,11 @@ using namespace System::Ioutils;
 using namespace System::Sysutils;
 using namespace System::Types;
 using namespace System::Uitypes;
+using namespace Vcl::Themes;
 //---------------------------------------------------------------------------
 
 namespace
 {
-
-TColor const FailureColor = static_cast<TColor>(RGB(200, 0, 0));
-TColor const SkipColor = static_cast<TColor>(RGB(190, 120, 0));
 
 /////////////////////////////////////////////////////////////////////////////
 // TNodeKind
@@ -93,14 +92,17 @@ enum class TNodeKind
 
 TTreeNode* AddTreeNode(TTreeNodes* nodes, TTreeNode* parent, std::string const& text, void* data);
 std::size_t DataToIndex(void* data);
+TColor FailureColor();
 std::string FirstLine(std::string const& text);
 std::string FormatSeconds(double seconds);
 void* IndexToData(std::size_t index);
+bool IsDarkBackground();
 TColor LogLineColor(std::string const& line);
 std::vector<TRect> MonitorWorkAreas();
 void* NodeData(TNodeKind kind, std::size_t index);
 std::size_t NodeIndex(void* data);
 TNodeKind NodeKind(void* data);
+TColor SkipColor();
 TTreeNode* SuiteTreeNode(TTreeNodes* nodes, TGUITestList const& testList, std::string const& suitePath,
     std::vector<TTreeNode*>& suiteNodes);
 TNodeCheckState ToNodeCheckState(TGUICheckState state);
@@ -129,6 +131,16 @@ std::size_t DataToIndex(void* data)
     return static_cast<std::size_t>(reinterpret_cast<NativeUInt>(data));
 }
 //---------------------------------------------------------------------------
+/*
+    FailureColor
+
+    The text color of a failure, readable on the list's and the log's background.
+*/
+TColor FailureColor()
+{
+    return IsDarkBackground() ? static_cast<TColor>(RGB(255, 100, 100)) : static_cast<TColor>(RGB(200, 0, 0));
+}
+//---------------------------------------------------------------------------
 std::string FirstLine(std::string const& text)
 {
     return text.substr(0, text.find('\n'));
@@ -147,6 +159,18 @@ void* IndexToData(std::size_t index)
 }
 //---------------------------------------------------------------------------
 /*
+    IsDarkBackground
+
+    Whether the active VCL style's window color is dark, so text colors that read well on white need lighter variants.
+*/
+bool IsDarkBackground()
+{
+    int const rgb = ColorToRGB(TStyleManager::ActiveStyle->GetSystemColor(clWindow));
+    int const luma = (GetRValue(rgb) * 299 + GetGValue(rgb) * 587 + GetBValue(rgb) * 114) / 1000;
+    return luma < 128;
+}
+//---------------------------------------------------------------------------
+/*
     LogLineColor
 
     The Log tab's color for one line of the framework's log output: its failure lines (a failed test or check, an
@@ -160,11 +184,11 @@ TColor LogLineColor(std::string const& line)
         (line.find("!!FATAL ERROR!!") != std::string::npos) || (line.find("!!ERROR!!") != std::string::npos) ||
         (line.find("!!TIMEOUT!!") != std::string::npos) || (line.find("!!CRASH!!") != std::string::npos))
     {
-        return FailureColor;
+        return FailureColor();
     }
 
     if ((line.find("***Test skipped") != std::string::npos) || (line.find("\" - skipped (") != std::string::npos))
-        return SkipColor;
+        return SkipColor();
 
     return clWindowText;
 }
@@ -207,6 +231,16 @@ std::size_t NodeIndex(void* data)
 TNodeKind NodeKind(void* data)
 {
     return static_cast<TNodeKind>(reinterpret_cast<NativeUInt>(data) % 4);
+}
+//---------------------------------------------------------------------------
+/*
+    SkipColor
+
+    The text color of a skip, readable on the list's and the log's background.
+*/
+TColor SkipColor()
+{
+    return IsDarkBackground() ? static_cast<TColor>(RGB(255, 190, 70)) : static_cast<TColor>(RGB(190, 120, 0));
 }
 //---------------------------------------------------------------------------
 /*
@@ -1102,7 +1136,7 @@ void TFormASWUnitTestsBCBGUIMain::LoadSelection()
 }
 //---------------------------------------------------------------------------
 void __fastcall TFormASWUnitTestsBCBGUIMain::LV_FailuresCustomDrawItem(TCustomListView* Sender, TListItem* Item,
-    TCustomDrawState /*State*/, bool& /*DefaultDraw*/)
+    TCustomDrawState State, bool& /*DefaultDraw*/)
 {
     // Not RunGuarded(): this runs while painting, where showing an error would only cause more painting. An item it
     // can't match to a test is simply drawn in the default color.
@@ -1112,7 +1146,12 @@ void __fastcall TFormASWUnitTestsBCBGUIMain::LV_FailuresCustomDrawItem(TCustomLi
         return;
 
     bool const failed = (m_TestList.Status(index) == TGUITestStatus::Failed);
-    Sender->Canvas->Font->Color = failed ? FailureColor : SkipColor;
+    Sender->Canvas->Font->Color = failed ? FailureColor() : SkipColor();
+
+    // The styled list view would otherwise paint an item's background in the canvas's default (light) color unless the
+    // item is selected or hot.
+    if (!State.Contains(cdsSelected) && !State.Contains(cdsHot))
+        Sender->Canvas->Brush->Color = TStyleManager::ActiveStyle->GetSystemColor(clWindow);
 }
 //---------------------------------------------------------------------------
 void __fastcall TFormASWUnitTestsBCBGUIMain::LV_FailuresDblClick(TObject* /*Sender*/)
