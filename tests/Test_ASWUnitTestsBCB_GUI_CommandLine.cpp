@@ -72,6 +72,7 @@ bool Contains(std::vector<std::string> const& list, std::string const& item)
 
 } // namespace
 
+//---------------------------------------------------------------------------
 
 namespace ASWUnitTestsBCB
 {

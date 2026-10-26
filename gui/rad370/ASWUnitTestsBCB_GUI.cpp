@@ -101,8 +101,7 @@ int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int)
         // Parsed before the main form exists, so --help, --version, and argument errors are shown on their own and the
         // process exits with the same code the console runner would use, without opening the GUI.
         TGUIOptions options;
-        TGUICommandLineResult const commandLine = TGUICommandLine::Parse(TGUICommandLine::ProcessArguments(),
-            options);
+        TGUICommandLineResult const commandLine = TGUICommandLine::Parse(TGUICommandLine::ProcessArguments(), options);
 
         if (commandLine.EarlyExitCode.HasValue())
         {

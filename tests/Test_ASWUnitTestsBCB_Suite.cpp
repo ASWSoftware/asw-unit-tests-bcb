@@ -82,6 +82,7 @@ public:
     }
 };
 
+//---------------------------------------------------------------------------
 
 bool Contains(std::string const& text, std::string const& part);
 std::string JoinNames(std::vector<std::string> const& names);
@@ -93,7 +94,11 @@ bool Contains(std::string const& text, std::string const& part)
     return text.find(part) != std::string::npos;
 }
 //---------------------------------------------------------------------------
-// 'names' joined with "|", so a whole list can be compared, and shown on failure, as one string.
+/*
+    JoinNames
+
+    'names' joined with "|", so a whole list can be compared, and shown on failure, as one string.
+*/
 std::string JoinNames(std::vector<std::string> const& names)
 {
     std::string joined;
@@ -104,7 +109,11 @@ std::string JoinNames(std::vector<std::string> const& names)
     return joined;
 }
 //---------------------------------------------------------------------------
-// Returns the tests 'results' records, in the order they ran, as "Group.Test;Group.Test;".
+/*
+    RunOrder
+
+    Returns the tests 'results' records, in the order they ran, as "Group.Test;Group.Test;".
+*/
 std::string RunOrder(ASWUnitTestsBCB::TTestResults const& results)
 {
     std::string order;
@@ -118,6 +127,7 @@ std::string RunOrder(ASWUnitTestsBCB::TTestResults const& results)
 
 } // namespace
 
+//---------------------------------------------------------------------------
 
 namespace ASWUnitTestsBCB
 {
@@ -161,8 +171,7 @@ void __fastcall TInnerS_ZTop::Test_One()
 
 
 /////////////////////////////////////////////////////////////////////////////
-// TInnerS_Nested: in suite "Inner" inside suite "Outer", with a test that
-// fails
+// TInnerS_Nested: in suite "Inner" inside suite "Outer", with a test that fails
 /////////////////////////////////////////////////////////////////////////////
 class TInnerS_Nested : public TTestGroupBase
 {

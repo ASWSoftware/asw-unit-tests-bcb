@@ -145,6 +145,8 @@ struct TShuffledOrderOfInvalidPath
 
 bool volatile g_KeepRecursing = true;
 
+//---------------------------------------------------------------------------
+
 bool Contains(std::string const& text, std::string const& part);
 std::string JoinIndices(std::vector<std::size_t> const& indices);
 int Recurse(int depth);
@@ -156,7 +158,11 @@ bool Contains(std::string const& text, std::string const& part)
     return text.find(part) != std::string::npos;
 }
 //---------------------------------------------------------------------------
-// 'indices' joined with ",", so a whole order can be compared, and shown on failure, as one string.
+/*
+    JoinIndices
+
+    'indices' joined with ",", so a whole order can be compared, and shown on failure, as one string.
+*/
 std::string JoinIndices(std::vector<std::size_t> const& indices)
 {
     std::string joined;
@@ -168,8 +174,12 @@ std::string JoinIndices(std::vector<std::size_t> const& indices)
     return joined;
 }
 //---------------------------------------------------------------------------
-// Recurses until the stack overflows, a kilobyte at a time. (g_KeepRecursing only keeps compilers from warning about
-// endless recursion.)
+/*
+    Recurse
+
+    Recurses until the stack overflows, a kilobyte at a time. (g_KeepRecursing only keeps compilers from warning about
+    endless recursion.)
+*/
 int Recurse(int depth)
 {
     char volatile buffer[1024];
@@ -177,7 +187,11 @@ int Recurse(int depth)
     return (g_KeepRecursing ? Recurse(depth + 1) : 0) + buffer[0];
 }
 //---------------------------------------------------------------------------
-// Returns the tests 'results' records, in the order they ran, as "Group.Test;Group.Test;".
+/*
+    RunOrder
+
+    Returns the tests 'results' records, in the order they ran, as "Group.Test;Group.Test;".
+*/
 std::string RunOrder(ASWUnitTestsBCB::TTestResults const& results)
 {
     std::string order;
@@ -191,6 +205,7 @@ std::string RunOrder(ASWUnitTestsBCB::TTestResults const& results)
 
 } // namespace
 
+//---------------------------------------------------------------------------
 
 namespace ASWUnitTestsBCB
 {

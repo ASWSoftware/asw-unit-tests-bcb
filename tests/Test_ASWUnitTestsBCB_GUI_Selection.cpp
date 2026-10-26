@@ -88,10 +88,16 @@ struct TSaved
     }
 };
 
+//---------------------------------------------------------------------------
+
 std::vector<ASWUnitTestsBCB::TTestId> SampleTests();
 
 //---------------------------------------------------------------------------
-// Four tests in three groups: indexes 0 and 1 in "Alpha", 2 in "Beta", 3 in "Gamma".
+/*
+    SampleTests
+
+    Four tests in three groups: indexes 0 and 1 in "Alpha", 2 in "Beta", 3 in "Gamma".
+*/
 std::vector<ASWUnitTestsBCB::TTestId> SampleTests()
 {
     std::vector<ASWUnitTestsBCB::TTestId> tests;
@@ -105,6 +111,7 @@ std::vector<ASWUnitTestsBCB::TTestId> SampleTests()
 
 } // namespace
 
+//---------------------------------------------------------------------------
 
 namespace ASWUnitTestsBCB
 {

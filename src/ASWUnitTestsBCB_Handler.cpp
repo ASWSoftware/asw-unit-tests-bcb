@@ -76,15 +76,21 @@ struct TSortLevel
     int Kind;
 };
 
+//---------------------------------------------------------------------------
+
 void AppendShuffled(std::vector<TSuiteNode> const& suites, std::size_t suiteIndex, unsigned int seed,
     std::vector<std::size_t>& order);
 bool CharsMatch(char a, char b, bool ignoreCase);
 bool SortKeyLess(std::vector<TSortLevel> const& a, std::vector<TSortLevel> const& b);
 
 //---------------------------------------------------------------------------
-// Appends to 'order' the groups in suite 'suiteIndex' of 'suites' and the suites inside it, visiting each suite's
-// children in the order ShuffledIndices() gives: 'seed' for the top level, 'seed' plus the FNV-1a hash of its path
-// for a suite.
+/*
+    AppendShuffled
+
+    Appends to 'order' the groups in suite 'suiteIndex' of 'suites' and the suites inside it, visiting each suite's
+    children in the order ShuffledIndices() gives: 'seed' for the top level, 'seed' plus the FNV-1a hash of its path
+    for a suite.
+*/
 void AppendShuffled(std::vector<TSuiteNode> const& suites, std::size_t suiteIndex, unsigned int seed,
     std::vector<std::size_t>& order)
 {
@@ -103,7 +109,11 @@ void AppendShuffled(std::vector<TSuiteNode> const& suites, std::size_t suiteInde
     }
 }
 //---------------------------------------------------------------------------
-// Whether 'a' and 'b' are the same character, with 'ignoreCase' treating the ASCII letters A-Z as lowercase.
+/*
+    CharsMatch
+
+    Whether 'a' and 'b' are the same character, with 'ignoreCase' treating the ASCII letters A-Z as lowercase.
+*/
 bool CharsMatch(char a, char b, bool ignoreCase)
 {
     if (ignoreCase)
@@ -118,8 +128,12 @@ bool CharsMatch(char a, char b, bool ignoreCase)
     return a == b;
 }
 //---------------------------------------------------------------------------
-// Whether sort key 'a' comes before 'b', comparing level by level (order, then name, then kind), with a key that
-// runs out first coming first.
+/*
+    SortKeyLess
+
+    Whether sort key 'a' comes before 'b', comparing level by level (order, then name, then kind), with a key that
+    runs out first coming first.
+*/
 bool SortKeyLess(std::vector<TSortLevel> const& a, std::vector<TSortLevel> const& b)
 {
     for (std::size_t i = 0; (i < a.size()) && (i < b.size()); ++i)

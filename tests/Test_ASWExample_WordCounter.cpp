@@ -45,7 +45,15 @@ namespace ASWUnitTestsBCB
 namespace
 {
 
-// Makes a row of the parameterized test Count_Words.
+TWordCountCase WordCountCase(std::string const& name, UnicodeString const& text, int expected);
+std::string WordCountCaseName(TWordCountCase const& row);
+
+//---------------------------------------------------------------------------
+/*
+    WordCountCase
+
+    Makes a row of the parameterized test Count_Words.
+*/
 TWordCountCase WordCountCase(std::string const& name, UnicodeString const& text, int expected)
 {
     TWordCountCase row;
@@ -54,8 +62,6 @@ TWordCountCase WordCountCase(std::string const& name, UnicodeString const& text,
     row.Expected = expected;
     return row;
 }
-
-std::string WordCountCaseName(TWordCountCase const& row);
 
 //---------------------------------------------------------------------------
 /*
@@ -70,6 +76,7 @@ std::string WordCountCaseName(TWordCountCase const& row)
 
 } // namespace
 
+//---------------------------------------------------------------------------
 
 /////////////////////////////////////////////////////////////////////////////
 // TTest_ASWExample_WordCounter

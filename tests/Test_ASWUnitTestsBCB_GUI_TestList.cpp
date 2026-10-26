@@ -65,6 +65,8 @@ public:
     }
 };
 
+//---------------------------------------------------------------------------
+
 std::string Joined(std::vector<std::size_t> const& indexes);
 std::string Joined(std::vector<std::string> const& names);
 ASWUnitTestsBCB::TTestCaseRecord Record(std::string const& groupName, std::string const& testName,
@@ -73,7 +75,11 @@ std::vector<ASWUnitTestsBCB::TTestId> SampleTests();
 std::vector<ASWUnitTestsBCB::TTestId> SuiteTests();
 
 //---------------------------------------------------------------------------
-// e.g. "0;1;"
+/*
+    Joined
+
+    e.g. "0;1;"
+*/
 std::string Joined(std::vector<std::size_t> const& indexes)
 {
     std::string text;
@@ -84,7 +90,11 @@ std::string Joined(std::vector<std::size_t> const& indexes)
     return text;
 }
 //---------------------------------------------------------------------------
-// e.g. "Alpha;Beta;"
+/*
+    Joined
+
+    e.g. "Alpha;Beta;"
+*/
 std::string Joined(std::vector<std::string> const& names)
 {
     std::string text;
@@ -107,7 +117,11 @@ ASWUnitTestsBCB::TTestCaseRecord Record(std::string const& groupName, std::strin
     return record;
 }
 //---------------------------------------------------------------------------
-// Four tests in three groups, one with a '.' in its name: indexes 0 and 1 in "Alpha", 2 in "Beta", 3 in "Alpha.Sub".
+/*
+    SampleTests
+
+    Four tests in three groups, one with a '.' in its name: indexes 0 and 1 in "Alpha", 2 in "Beta", 3 in "Alpha.Sub".
+*/
 std::vector<ASWUnitTestsBCB::TTestId> SampleTests()
 {
     std::vector<ASWUnitTestsBCB::TTestId> tests;
@@ -118,9 +132,13 @@ std::vector<ASWUnitTestsBCB::TTestId> SampleTests()
     return tests;
 }
 //---------------------------------------------------------------------------
-// Six tests, with groups in suites: index 0 in top-level group "Top"; 1 and 2 in group "Deep" in suite
-// "Outer.Inner"; 3 in group "Mid" in suite "Outer"; 4 in group "Solo" in suite "Other"; and 5 in group "Near" in
-// suite "Outermost", whose path starts with "Outer" but isn't inside it.
+/*
+    SuiteTests
+
+    Six tests, with groups in suites: index 0 in top-level group "Top"; 1 and 2 in group "Deep" in suite
+    "Outer.Inner"; 3 in group "Mid" in suite "Outer"; 4 in group "Solo" in suite "Other"; and 5 in group "Near" in
+    suite "Outermost", whose path starts with "Outer" but isn't inside it.
+*/
 std::vector<ASWUnitTestsBCB::TTestId> SuiteTests()
 {
     std::vector<ASWUnitTestsBCB::TTestId> tests;
@@ -136,6 +154,7 @@ std::vector<ASWUnitTestsBCB::TTestId> SuiteTests()
 
 } // namespace
 
+//---------------------------------------------------------------------------
 
 namespace ASWUnitTestsBCB
 {

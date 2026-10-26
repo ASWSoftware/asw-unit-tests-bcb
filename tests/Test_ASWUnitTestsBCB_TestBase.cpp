@@ -135,8 +135,12 @@ public:
     }
 };
 
+//---------------------------------------------------------------------------
+
 void* g_IllegalInstruction = nullptr; // Executable memory holding ud2, once RunIllegalInstruction() has run
 bool volatile g_KeepRecursing = true;
+
+//---------------------------------------------------------------------------
 
 std::string Address(void const* pointer);
 bool Contains(std::string const& text, std::string const& part);
@@ -149,7 +153,11 @@ void RunIllegalInstruction();
 bool StartsWith(std::string const& text, std::string const& prefix);
 
 //---------------------------------------------------------------------------
-// 'pointer''s address as the framework should show it, e.g. "0x12ff40".
+/*
+    Address
+
+    'pointer''s address as the framework should show it, e.g. "0x12ff40".
+*/
 std::string Address(void const* pointer)
 {
     std::ostringstream stream;
@@ -162,7 +170,11 @@ bool Contains(std::string const& text, std::string const& part)
     return text.find(part) != std::string::npos;
 }
 //---------------------------------------------------------------------------
-// The record of 'testName' in 'results', or "(no record)".
+/*
+    MessageOf
+
+    The record of 'testName' in 'results', or "(no record)".
+*/
 std::string MessageOf(ASWUnitTestsBCB::TTestResults const& results, std::string const& testName)
 {
     for (std::size_t i = 0; i < results.CaseRecords.size(); ++i)
@@ -174,7 +186,11 @@ std::string MessageOf(ASWUnitTestsBCB::TTestResults const& results, std::string 
     return "(no record)";
 }
 //---------------------------------------------------------------------------
-// The test names, comma-separated, e.g. "Zeta,Virtual,Alpha".
+/*
+    NamesOf
+
+    The test names, comma-separated, e.g. "Zeta,Virtual,Alpha".
+*/
 std::string NamesOf(std::vector<ASWUnitTestsBCB::TPublishedTest> const& tests)
 {
     std::string names;
@@ -185,7 +201,11 @@ std::string NamesOf(std::vector<ASWUnitTestsBCB::TPublishedTest> const& tests)
     return names;
 }
 //---------------------------------------------------------------------------
-// "pass", "fail" or "skip" for 'testName' in 'results', or "(no record)".
+/*
+    OutcomeOf
+
+    "pass", "fail" or "skip" for 'testName' in 'results', or "(no record)".
+*/
 std::string OutcomeOf(ASWUnitTestsBCB::TTestResults const& results, std::string const& testName)
 {
     for (std::size_t i = 0; i < results.CaseRecords.size(); ++i)
@@ -209,7 +229,11 @@ std::string OutcomeOf(ASWUnitTestsBCB::TTestResults const& results, std::string 
     return "(no record)";
 }
 //---------------------------------------------------------------------------
-// Each record's test name, outcome and message, one per line, e.g. "Fail=fail: Fail (12): failing on purpose".
+/*
+    RecordsOf
+
+    Each record's test name, outcome and message, one per line, e.g. "Fail=fail: Fail (12): failing on purpose".
+*/
 std::string RecordsOf(ASWUnitTestsBCB::TTestResults const& results)
 {
     std::string records;
@@ -223,8 +247,12 @@ std::string RecordsOf(ASWUnitTestsBCB::TTestResults const& results)
     return records;
 }
 //---------------------------------------------------------------------------
-// Recurses until the stack overflows, a kilobyte at a time. (g_KeepRecursing only keeps compilers from warning about
-// endless recursion.)
+/*
+    Recurse
+
+    Recurses until the stack overflows, a kilobyte at a time. (g_KeepRecursing only keeps compilers from warning about
+    endless recursion.)
+*/
 int Recurse(int depth)
 {
     char volatile buffer[1024];
@@ -232,7 +260,11 @@ int Recurse(int depth)
     return (g_KeepRecursing ? Recurse(depth + 1) : 0) + buffer[0];
 }
 //---------------------------------------------------------------------------
-// Executes an illegal instruction (ud2).
+/*
+    RunIllegalInstruction
+
+    Executes an illegal instruction (ud2).
+*/
 void RunIllegalInstruction()
 {
     typedef void (*TCode)();
@@ -256,6 +288,7 @@ bool StartsWith(std::string const& text, std::string const& prefix)
 
 } // namespace
 
+//---------------------------------------------------------------------------
 
 namespace ASWUnitTestsBCB
 {
