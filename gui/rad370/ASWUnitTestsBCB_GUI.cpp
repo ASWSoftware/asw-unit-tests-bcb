@@ -26,6 +26,7 @@ limitations under the License.
 //---------------------------------------------------------------------------
 #include <exception>
 #include <string>
+#include <vector>
 //---------------------------------------------------------------------------
 #include <System.SysUtils.hpp>
 #include <Vcl.Forms.hpp>
@@ -35,7 +36,10 @@ limitations under the License.
 #include "ASWUnitTestsBCB_CLI.h"
 #include "ASWUnitTestsBCB_Exception.h"
 #include "ASWUnitTestsBCB_GUI_CommandLine.h"
+#include "ASWUnitTestsBCB_GUI_Layout.h"
+#include "ASWUnitTestsBCB_GUI_Style.h"
 #include "ASWUnitTestsBCB_GUI_TextDialog.h"
+#include "ASWUnitTestsBCB_GUI_Theme.h"
 //---------------------------------------------------------------------------
 // Before the form's own header, which declares the form variable USEFORM() declares too, as the IDE writes it.
 USEFORM("..\src\ASWUnitTestsBCB_GUI_MainForm.cpp", FormASWUnitTestsBCBGUIMain);
@@ -62,6 +66,18 @@ int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int)
         TGUIOptions options;
         TGUICommandLineResult const commandLine = TGUICommandLine::Parse(TGUICommandLine::ProcessArguments(), options);
 
+        // Before any form exists, so each one, the --help text's included, is created in its style rather than
+        // restyled. The built-in dark styles are linked in by the project (Custom_Styles), and a theme file's is loaded
+        // here. --layout-reset's deletion of the layout file, which also holds the theme and the dark theme, comes later.
+        bool const savedTheme = !options.LayoutIgnore && !options.LayoutReset;
+        UnicodeString const layoutPath = GUILayoutFilePath();
+        EGUITheme const theme = savedTheme ? LoadGUIThemeFromLayoutFile(layoutPath) : EGUITheme::Windows;
+        std::string const darkTheme = savedTheme ? LoadGUIDarkThemeFromLayoutFile(layoutPath) :
+                GUIDefaultDarkThemeName();
+        std::vector<std::string> themeProblems;
+        UnicodeString const darkStyle = LoadGUIDarkStyle(GUIThemesFolderPath(), darkTheme, themeProblems);
+        ApplyGUITheme(theme, darkStyle);
+
         if (commandLine.EarlyExitCode.HasValue())
         {
             ShowTextDialog(Application->Title, commandLine.Message);
@@ -69,7 +85,7 @@ int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int)
         }
 
         Application->CreateForm(__classid(TFormASWUnitTestsBCBGUIMain), &FormASWUnitTestsBCBGUIMain);
-        FormASWUnitTestsBCBGUIMain->Start(options);
+        FormASWUnitTestsBCBGUIMain->Start(options, theme, darkTheme, darkStyle, themeProblems);
         Application->Run();
 
         // The form outlives Run(); Application frees it later, during shutdown.

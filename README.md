@@ -625,6 +625,28 @@ a monitor that's no longer connected is ignored. An `--exit` run doesn't save th
 Reset Layout** restores the default layout right away; `--layout-ignore` and `--layout-reset`
 (below) control this from the command line.
 
+**View > Theme** chooses a light or dark look. **Use Windows Setting**, the default, follows
+Windows' app mode setting (Settings > Personalization > Colors), and switches as soon as it
+changes, but stays light while high contrast is on, so the window shows high contrast's own colors.
+**Light** and **Dark** keep that look whatever Windows is set to. Dark is one of RAD Studio's dark
+VCL styles, Carbon unless **Dark Theme** (below) chooses another, and light the standard Windows
+look. A choice applies right away and is saved in the layout file at once, so the next session
+starts with it; **View > Reset Layout** leaves it as it is. The Theme commands are disabled during
+a run, and a change of the Windows setting during one applies when it ends.
+
+**View > Theme > Dark Theme** chooses the dark look's colors, used whenever the look is dark, with
+Dark or with Use Windows Setting: one of five of RAD Studio's dark VCL styles, Carbon (the default),
+Charcoal Dark Slate, Cobalt XEMedia, Onyx Blue and Tablet Dark, or a VCL style file of your own. It
+lists the styles the executable links in, and Carbon always, then the style files in
+`%APPDATA%\ASWUnitTestsBCB\Themes`, which **Open Themes Folder** opens, each by its file name. The
+choice is saved in the layout file with the theme, and a problem, such as a missing file, is
+reported in the Log tab, with Carbon used in its place.
+
+A style file, `<Name>.vsf`, is made with RAD Studio's Bitmap Style Designer, and the Themes folder
+is shared by every test app. Each file needs a style name of its own, not that of a style the
+executable already has, such as Carbon. A style file is loaded once per session, so a change to it
+shows after a restart.
+
 The window also remembers which tests are checked, in
 `%APPDATA%\ASWUnitTestsBCB\<exe name>.selection`, as long as the command line doesn't choose them
 itself (no `--run`, `--filter`, or partition options). What it saves is what Run Selected would run,
@@ -669,11 +691,12 @@ these differences:
 - `--exit` (GUI-only, requires `--run`) closes the window when that run finishes, and exits with the
   same code the console runner would; a run ended with Stop exits with `1`. Without `--exit`, the
   GUI always exits with `0`.
-- `--layout-ignore` (GUI-only) neither loads nor saves the window layout, so the window opens with
-  the defaults and the saved layout is left as it is.
-- `--layout-reset` (GUI-only) deletes the saved window layout and opens with the defaults, which is
-  a way to recover if a saved layout ever causes a problem. The layout is saved again when the
-  window closes.
+- `--layout-ignore` (GUI-only) neither loads nor saves the window layout or the theme, so the
+  window opens with the defaults and the saved ones are left as they are. A theme chosen in the View
+  menu then lasts only until the window closes.
+- `--layout-reset` (GUI-only) deletes the saved window layout, and with it the theme, and opens
+  with the defaults, which is a way to recover if a saved layout ever causes a problem. The layout
+  is saved again when the window closes.
 
 A GUI process doesn't make a Windows command prompt wait for it, so a script that needs `--exit`'s
 exit code should start it with `start /wait` (or its own language's equivalent):
@@ -1130,8 +1153,12 @@ instead, remove the form and the `WinMain()` the wizard created, and add:
 - the submodule's `src\*.cpp` files except `main.cpp`;
 - the files in `gui\src`, `ASWUnitTestsBCB_GUI_MainForm.dfm` included;
 - your test groups and the code they test;
-- a `WinMain()` modeled on `gui\rad370\ASWUnitTestsBCB_GUI.cpp`, which parses the command line and
-  starts the main form.
+- a `WinMain()` modeled on `gui\rad370\ASWUnitTestsBCB_GUI.cpp`, which parses the command line,
+  applies the saved theme and starts the main form;
+- RAD Studio's Carbon style, for the dark theme, and any of Charcoal Dark Slate, Cobalt XEMedia,
+  Onyx Blue and Tablet Dark for **Dark Theme** to offer (Project > Options > Application >
+  Appearance, which this repository's project has as `Custom_Styles`); without Carbon, Dark shows
+  the light look.
 
 Add both `src` and `gui\src` to the include path. One test group file can be in a console and a GUI
 project at the same time, so the same tests run in both.

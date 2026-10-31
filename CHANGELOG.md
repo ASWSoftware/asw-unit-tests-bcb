@@ -7,6 +7,33 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- A dark theme in the VCL GUI runner, with **View > Theme** to choose it: **Use Windows Setting**
+  (the default) follows Windows' app mode setting, switching as soon as it changes, but stays light
+  while high contrast is on, and **Light** and **Dark** override it. The choice applies without a
+  restart and is saved in the layout file; `--layout-ignore` and `--layout-reset` cover it as they
+  do the layout. Dark is RAD Studio's Carbon VCL style, so a project of your own that runs its
+  tests in the VCL GUI runner needs Carbon among its custom styles (Project > Options >
+  Application > Appearance), without which Dark shows the light look, and a `WinMain()` that
+  applies the saved theme (see Changed).
+- **View > Theme > Dark Theme** in the VCL GUI runner chooses the dark look's colors from five of
+  RAD Studio's dark VCL styles: Carbon (the default), Charcoal Dark Slate, Cobalt XEMedia, Onyx Blue
+  and Tablet Dark. It lists the ones the executable links in as custom styles, and Carbon always.
+  The choice is saved in the layout file with the theme.
+- VCL style files (`.vsf`) as dark themes in the VCL GUI runner: **View > Theme > Dark Theme** also
+  lists the files in `%APPDATA%\ASWUnitTestsBCB\Themes`, shared by every test app, and **Open
+  Themes Folder** opens it. A style file's problems, such as a missing file or a style name already
+  taken, are reported in the log, with Carbon used in its place.
+
+### Changed
+
+- A VCL GUI project of your own needs the two new files in `gui\src`,
+  `ASWUnitTestsBCB_GUI_Style.cpp` and `ASWUnitTestsBCB_GUI_Theme.cpp`, and its `WinMain()` must
+  load the saved theme and dark theme and apply them before creating the main form, then pass them
+  to the form's `Start()`, which now takes them, the dark theme's VCL style and the problems found
+  loading it as well as the options, as `gui\rad370\ASWUnitTestsBCB_GUI.cpp` does.
+
 ## [1.0.0] - 2026-10-15
 
 ### Added

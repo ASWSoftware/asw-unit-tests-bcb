@@ -1334,7 +1334,7 @@ void __fastcall TInnerTB_Emptiness::Test_Passes()
 enum TInnerTB_Color
 {
     InnerTB_Red,
-    InnerTB_Blue
+    InnerTB_Blue,
 };
 
 class TInnerTB_Equals : public TTestGroupBase

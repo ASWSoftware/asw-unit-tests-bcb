@@ -79,19 +79,19 @@ enum EColor
 {
     Red,
     Green,
-    Blue
+    Blue,
 };
 
 enum ESize
 {
     Small = 1,
-    Large = 2
+    Large = 2,
 };
 
 enum ESigned
 {
     MinusFive = -5,
-    PlusFive = 5
+    PlusFive = 5,
 };
 
 enum class EScopedColor
@@ -111,7 +111,7 @@ struct TOuter
 {
     enum EInner
     {
-        InnerTwo = 2
+        InnerTwo = 2,
     };
 
     enum class EScopedInner

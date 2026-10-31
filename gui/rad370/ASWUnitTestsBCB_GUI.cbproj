@@ -58,6 +58,7 @@
         <BCC_AllWarnings>true</BCC_AllWarnings>
         <BCC_SelectedWarnings>false</BCC_SelectedWarnings>
         <BCC_SelectedWarnings_v15>false</BCC_SelectedWarnings_v15>
+        <Custom_Styles>&quot;Tablet Dark|VCLSTYLE|$(BDSCOMMONDIR)\Styles\TabletDark.vsf&quot;;Carbon|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Carbon.vsf;&quot;Charcoal Dark Slate|VCLSTYLE|$(BDSCOMMONDIR)\Styles\CharcoalDarkSlate.vsf&quot;;&quot;Cobalt XEMedia|VCLSTYLE|$(BDSCOMMONDIR)\Styles\CobaltXEMedia.vsf&quot;;&quot;Onyx Blue|VCLSTYLE|$(BDSCOMMONDIR)\Styles\OnyxBlue.vsf&quot;</Custom_Styles>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win64x)'!=''">
         <BCC_EnableBatchCompilation>true</BCC_EnableBatchCompilation>
@@ -123,6 +124,10 @@
             <DependentOn>..\src\ASWUnitTestsBCB_GUI_ShuffleSeedDialog.h</DependentOn>
             <BuildOrder>37</BuildOrder>
         </CppCompile>
+        <CppCompile Include="..\src\ASWUnitTestsBCB_GUI_Style.cpp">
+            <DependentOn>..\src\ASWUnitTestsBCB_GUI_Style.h</DependentOn>
+            <BuildOrder>43</BuildOrder>
+        </CppCompile>
         <CppCompile Include="..\src\ASWUnitTestsBCB_GUI_TestList.cpp">
             <DependentOn>..\src\ASWUnitTestsBCB_GUI_TestList.h</DependentOn>
             <BuildOrder>38</BuildOrder>
@@ -130,6 +135,10 @@
         <CppCompile Include="..\src\ASWUnitTestsBCB_GUI_TextDialog.cpp">
             <DependentOn>..\src\ASWUnitTestsBCB_GUI_TextDialog.h</DependentOn>
             <BuildOrder>39</BuildOrder>
+        </CppCompile>
+        <CppCompile Include="..\src\ASWUnitTestsBCB_GUI_Theme.cpp">
+            <DependentOn>..\src\ASWUnitTestsBCB_GUI_Theme.h</DependentOn>
+            <BuildOrder>41</BuildOrder>
         </CppCompile>
         <CppCompile Include="..\..\src\ASWUnitTestsBCB_CLI.cpp">
             <DependentOn>..\..\src\ASWUnitTestsBCB_CLI.h</DependentOn>
@@ -214,6 +223,10 @@
         <CppCompile Include="..\..\tests\Test_ASWUnitTestsBCB_GUI_TestList.cpp">
             <DependentOn>..\..\tests\Test_ASWUnitTestsBCB_GUI_TestList.h</DependentOn>
             <BuildOrder>23</BuildOrder>
+        </CppCompile>
+        <CppCompile Include="..\..\tests\Test_ASWUnitTestsBCB_GUI_Theme.cpp">
+            <DependentOn>..\..\tests\Test_ASWUnitTestsBCB_GUI_Theme.h</DependentOn>
+            <BuildOrder>42</BuildOrder>
         </CppCompile>
         <CppCompile Include="..\..\tests\Test_ASWUnitTestsBCB_Handler.cpp">
             <DependentOn>..\..\tests\Test_ASWUnitTestsBCB_Handler.h</DependentOn>
