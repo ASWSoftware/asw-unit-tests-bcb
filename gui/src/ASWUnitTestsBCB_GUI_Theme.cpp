@@ -27,19 +27,23 @@ limitations under the License.
 // Module header
 #include "ASWUnitTestsBCB_GUI_Theme.h"
 //---------------------------------------------------------------------------
+#include <algorithm>
 #include <memory>
 #include <string>
 #include <vector>
 //---------------------------------------------------------------------------
 #include <System.IniFiles.hpp>
+#include <System.IOUtils.hpp>
 #include <System.SysUtils.hpp>
 #include <System.Win.Registry.hpp>
 #include <windows.h>
 //---------------------------------------------------------------------------
+#include "ASWUnitTestsBCB_GUI_Layout.h"
 #include "ASWUnitTestsBCB_Utils.h"
 //---------------------------------------------------------------------------
 using namespace System;
 using namespace System::Inifiles;
+using namespace System::Ioutils;
 using namespace System::Sysutils;
 using namespace System::Win::Registry;
 //---------------------------------------------------------------------------
@@ -53,8 +57,36 @@ char const ViewSection[] = "View";
 
 //---------------------------------------------------------------------------
 
+bool ContainsName(std::vector<std::string> const& names, std::string const& name);
+bool LessName(std::string const& a, std::string const& b);
 bool SameName(std::string const& a, std::string const& b);
 
+//---------------------------------------------------------------------------
+/*
+    ContainsName
+
+    Whether 'names' has 'name', ignoring case as SameName() does.
+*/
+bool ContainsName(std::vector<std::string> const& names, std::string const& name)
+{
+    for (std::vector<std::string>::const_iterator it = names.begin(); it != names.end(); ++it)
+    {
+        if (SameName(*it, name))
+            return true;
+    }
+
+    return false;
+}
+//---------------------------------------------------------------------------
+/*
+    LessName
+
+    Whether theme name 'a' sorts before 'b', both UTF-8, ignoring the case of ASCII letters only, as CompareText() does.
+*/
+bool LessName(std::string const& a, std::string const& b)
+{
+    return CompareText(ASWUnitTestsBCB::FromUTF8(a), ASWUnitTestsBCB::FromUTF8(b)) < 0;
+}
 //---------------------------------------------------------------------------
 /*
     SameName
@@ -74,6 +106,28 @@ bool SameName(std::string const& a, std::string const& b)
 namespace ASWUnitTestsBCB
 {
 
+//---------------------------------------------------------------------------
+std::vector<std::string> FileNamesInFolder(UnicodeString const& folderPath)
+{
+    std::vector<std::string> names;
+
+    try
+    {
+        if (!DirectoryExists(folderPath))
+            return names;
+
+        DynamicArray<UnicodeString> const files = TDirectory::GetFiles(folderPath);
+
+        for (int i = 0; i < files.Length; ++i)
+            names.push_back(ToUTF8(ExtractFileName(files[i])));
+    }
+    catch (...)
+    {
+        names.clear();
+    }
+
+    return names;
+}
 //---------------------------------------------------------------------------
 std::string FindGUIBuiltInDarkTheme(std::vector<std::string> const& builtInNames, std::string const& darkTheme)
 {
@@ -143,9 +197,36 @@ bool GUIThemeIsDark(EGUITheme theme, bool windowsAppsUseDark, bool highContrast)
     return windowsAppsUseDark && !highContrast;
 }
 //---------------------------------------------------------------------------
+std::vector<std::string> GUIThemeNames(std::vector<std::string> const& fileNames, std::string const& extension,
+    std::vector<std::string> const& builtInNames)
+{
+    std::vector<std::string> names;
+
+    for (std::vector<std::string>::const_iterator it = fileNames.begin(); it != fileNames.end(); ++it)
+    {
+        if ((it->size() <= extension.size()) || !SameName(it->substr(it->size() - extension.size()), extension))
+            continue;
+
+        std::string const name = it->substr(0, it->size() - extension.size());
+
+        if (!ContainsName(names, name) && !ContainsName(builtInNames, name))
+            names.push_back(name);
+    }
+
+    // No two names are the same ignoring case, so no two sort equal, and std::sort's order is the only one (bcc32 warns
+    // about std::stable_sort).
+    std::sort(names.begin(), names.end(), &LessName);
+    return names;
+}
+//---------------------------------------------------------------------------
 std::string GUIThemeProblemLine(std::string const& themeName, std::string const& problem)
 {
     return "Dark theme \"" + themeName + "\": " + problem;
+}
+//---------------------------------------------------------------------------
+UnicodeString GUIThemesFolderPath()
+{
+    return TPath::Combine(ExtractFileDir(GUILayoutFilePath()), "Themes");
 }
 //---------------------------------------------------------------------------
 std::vector<std::string> GUIVCLStyleDarkThemeNames()
@@ -175,7 +256,7 @@ std::string LoadGUIDarkThemeFromLayoutFile(UnicodeString const& layoutPath)
         if (!FileExists(layoutPath))
             return GUIDefaultDarkThemeName();
 
-        std::unique_ptr<TMemIniFile> const ini(new TMemIniFile(layoutPath));
+        std::unique_ptr<TMemIniFile> const ini(NewGUILayoutFile(layoutPath));
         return LoadGUIDarkTheme(*ini);
     }
     catch (...)
@@ -205,7 +286,7 @@ EGUITheme LoadGUIThemeFromLayoutFile(UnicodeString const& layoutPath)
         if (!FileExists(layoutPath))
             return EGUITheme::Windows;
 
-        std::unique_ptr<TMemIniFile> const ini(new TMemIniFile(layoutPath));
+        std::unique_ptr<TMemIniFile> const ini(NewGUILayoutFile(layoutPath));
         return LoadGUITheme(*ini);
     }
     catch (...)
@@ -226,7 +307,7 @@ void SaveGUIDarkThemeToLayoutFile(UnicodeString const& layoutPath, std::string c
         ForceDirectories(ExtractFileDir(layoutPath));
 
         // Reading the file's current values first keeps the layout and any other values in it.
-        std::unique_ptr<TMemIniFile> const ini(new TMemIniFile(layoutPath));
+        std::unique_ptr<TMemIniFile> const ini(NewGUILayoutFile(layoutPath));
         SaveGUIDarkTheme(*ini, name);
         ini->UpdateFile();
     }
@@ -255,7 +336,7 @@ void SaveGUIThemeToLayoutFile(UnicodeString const& layoutPath, EGUITheme theme)
         ForceDirectories(ExtractFileDir(layoutPath));
 
         // Reading the file's current values first keeps the layout and any other values in it.
-        std::unique_ptr<TMemIniFile> const ini(new TMemIniFile(layoutPath));
+        std::unique_ptr<TMemIniFile> const ini(NewGUILayoutFile(layoutPath));
         SaveGUITheme(*ini, theme);
         ini->UpdateFile();
     }

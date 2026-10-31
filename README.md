@@ -636,9 +636,16 @@ a run, and a change of the Windows setting during one applies when it ends.
 
 **View > Theme > Dark Theme** chooses the dark look's colors, used whenever the look is dark, with
 Dark or with Use Windows Setting: one of five of RAD Studio's dark VCL styles, Carbon (the default),
-Charcoal Dark Slate, Cobalt XEMedia, Onyx Blue and Tablet Dark. It lists the ones the executable
-links in, and Carbon always. The choice is saved in the layout file with the theme; a saved name
-that isn't one of them is reported in the Log tab, with Carbon used in its place.
+Charcoal Dark Slate, Cobalt XEMedia, Onyx Blue and Tablet Dark, or a VCL style file of your own. It
+lists the styles the executable links in, and Carbon always, then the style files in
+`%APPDATA%\ASWUnitTestsBCB\Themes`, which **Open Themes Folder** opens, each by its file name. The
+choice is saved in the layout file with the theme, and a problem, such as a missing file, is
+reported in the Log tab, with Carbon used in its place.
+
+A style file, `<Name>.vsf`, is made with RAD Studio's Bitmap Style Designer, and the Themes folder
+is shared by every test app. Each file needs a style name of its own, not that of a style the
+executable already has, such as Carbon. A style file is loaded once per session, so a change to it
+shows after a restart.
 
 The window also remembers which tests are checked, in
 `%APPDATA%\ASWUnitTestsBCB\<exe name>.selection`, as long as the command line doesn't choose them

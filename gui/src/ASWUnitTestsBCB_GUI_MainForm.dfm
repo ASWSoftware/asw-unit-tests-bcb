@@ -382,6 +382,13 @@ object FormASWUnitTestsBCBGUIMain: TFormASWUnitTestsBCBGUIMain
       Hint = 'Use the dark theme, whatever Windows is set to'
       OnExecute = Act_ThemeDarkExecute
     end
+    object Act_OpenThemesFolder: TAction
+      Caption = '&Open Themes Folder'
+      Hint =
+        'Open the folder of the VCL style files View > Theme > Dark Theme' +
+        ' lists'
+      OnExecute = Act_OpenThemesFolderExecute
+    end
   end
   object IL_Status: TImageList
     Left = 120
@@ -472,6 +479,12 @@ object FormASWUnitTestsBCBGUIMain: TFormASWUnitTestsBCBGUIMain
         object MI_ViewDarkTheme: TMenuItem
           Caption = 'Dark &Theme'
           OnClick = MI_ViewDarkThemeClick
+          object MI_ViewDarkThemeSeparator1: TMenuItem
+            Caption = '-'
+          end
+          object MI_ViewDarkThemeOpenFolder: TMenuItem
+            Action = Act_OpenThemesFolder
+          end
         end
       end
     end

@@ -77,6 +77,7 @@ __published: // IDE-managed Components
     TAction* Act_ExpandAll;
     TAction* Act_ExportJUnitReport;
     TAction* Act_FocusFilter;
+    TAction* Act_OpenThemesFolder;
     TAction* Act_ResetLayout;
     TAction* Act_RunFailed;
     TAction* Act_RunSelected;
@@ -126,6 +127,8 @@ __published: // IDE-managed Components
     TMenuItem* MI_View;
     TMenuItem* MI_ViewCollapseAll;
     TMenuItem* MI_ViewDarkTheme;
+    TMenuItem* MI_ViewDarkThemeOpenFolder;
+    TMenuItem* MI_ViewDarkThemeSeparator1;
     TMenuItem* MI_ViewExpandAll;
     TMenuItem* MI_ViewResetLayout;
     TMenuItem* MI_ViewSeparator1;
@@ -156,6 +159,7 @@ __published: // IDE-managed Components
     void __fastcall Act_ExpandAllExecute(TObject* Sender);
     void __fastcall Act_ExportJUnitReportExecute(TObject* Sender);
     void __fastcall Act_FocusFilterExecute(TObject* Sender);
+    void __fastcall Act_OpenThemesFolderExecute(TObject* Sender);
     void __fastcall Act_ResetLayoutExecute(TObject* Sender);
     void __fastcall Act_RunFailedExecute(TObject* Sender);
     void __fastcall Act_RunSelectedExecute(TObject* Sender);
@@ -195,7 +199,8 @@ private: // User declarations
     ASWUnitTestsBCB::TOptional<std::size_t> m_CurrentTestIndex;
     // The VCL style m_DarkTheme is (see LoadGUIDarkStyle()), which ApplyTheme() uses while the theme is dark.
     System::UnicodeString m_DarkStyle;
-    // The View > Theme > Dark Theme choice, e.g. GUIDefaultDarkThemeName().
+    // The View > Theme > Dark Theme choice: GUIDefaultDarkThemeName(), another built-in style's name, or a VCL style
+    // file's.
     std::string m_DarkTheme;
     // The Dark Theme menu item a click is being handled for; see DarkThemeItemClick().
     TMenuItem* m_DarkThemeClickItem;
@@ -269,11 +274,12 @@ private:
     void __fastcall DoCloseWindow();
     void __fastcall DoCollapseAll();
     void __fastcall DoCommandLineOptions();
-    void __fastcall DoDarkThemeItemClick();
     void __fastcall DoCopyDetails();
+    void __fastcall DoDarkThemeItemClick();
     void __fastcall DoExpandAll();
     void __fastcall DoExportJUnitReport();
     void __fastcall DoFocusFilter();
+    void __fastcall DoOpenThemesFolder();
     void __fastcall DoRequestCloseAfterRun();
     void __fastcall DoResetLayout();
     void __fastcall DoRestyle();

@@ -21,6 +21,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   RAD Studio's dark VCL styles: Carbon (the default), Charcoal Dark Slate, Cobalt XEMedia, Onyx Blue
   and Tablet Dark. It lists the ones the executable links in as custom styles, and Carbon always.
   The choice is saved in the layout file with the theme.
+- VCL style files (`.vsf`) as dark themes in the VCL GUI runner: **View > Theme > Dark Theme** also
+  lists the files in `%APPDATA%\ASWUnitTestsBCB\Themes`, shared by every test app, and **Open
+  Themes Folder** opens it. A style file's problems, such as a missing file or a style name already
+  taken, are reported in the log, with Carbon used in its place.
 
 ### Changed
 

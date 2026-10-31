@@ -47,6 +47,9 @@ enum class EGUITheme
 
 //---------------------------------------------------------------------------
 
+// The names of the files (not folders) in the folder, without the folder, converted to UTF-8, in no particular order;
+// empty if the folder doesn't exist or can't be listed.
+std::vector<std::string> FileNamesInFolder(System::UnicodeString const& folderPath);
 // The dark theme 'darkTheme' is among 'builtInNames' (see GUIBuiltInDarkThemeNames()), as that list names it, matching
 // it ignoring (ASCII) case; empty if it isn't one of them.
 std::string FindGUIBuiltInDarkTheme(std::vector<std::string> const& builtInNames, std::string const& darkTheme);
@@ -62,8 +65,18 @@ std::string GUIMenuItemText(std::string const& text);
 // Whether 'theme' is dark: Light and Dark as chosen, and Windows as 'windowsAppsUseDark' (Windows' app mode setting)
 // says, except that it's light while 'highContrast' is on, so the window shows high contrast's own colors.
 bool GUIThemeIsDark(EGUITheme theme, bool windowsAppsUseDark, bool highContrast);
+// The names of the themes among 'fileNames', the files in the Themes folder (see GUIThemesFolderPath()): each one that
+// ends in 'extension' (e.g. ".vsf"), ignoring (ASCII) case, without it, sorted ignoring case, and each name once. Leaves
+// out 'builtInNames' (see GUIBuiltInDarkThemeNames()), ignoring case, which a file can't replace, and a file named just
+// 'extension'.
+std::vector<std::string> GUIThemeNames(std::vector<std::string> const& fileNames, std::string const& extension,
+    std::vector<std::string> const& builtInNames);
 // A line for the log about one of the dark theme 'themeName''s problems: Dark theme "<name>": <problem>
 std::string GUIThemeProblemLine(std::string const& themeName, std::string const& problem);
+// The folder of the VCL style files, "<name>.vsf", that View > Theme > Dark Theme lists, whatever executable runs the
+// GUI: Themes, beside the layout file (see GUILayoutFilePath()), so %APPDATA%\ASWUnitTestsBCB\Themes. It may not exist
+// yet.
+System::UnicodeString GUIThemesFolderPath();
 // The dark themes besides Carbon that the VCL GUI runner has built in when their VCL styles are linked in, sorted:
 // RAD Studio's dark VCL styles, by their style names.
 std::vector<std::string> GUIVCLStyleDarkThemeNames();

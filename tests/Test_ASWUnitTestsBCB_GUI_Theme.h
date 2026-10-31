@@ -50,12 +50,15 @@ public:
     virtual void TearDown_Group();
 
 __published:
+    void __fastcall Test_FileNamesInFolder_ListsOnlyTheFiles();
     void __fastcall Test_FindGUIBuiltInDarkTheme_MatchesIgnoringCase();
     void __fastcall Test_GUIBuiltInDarkThemeNames_CarbonThenLinkedStyles();
     void __fastcall Test_GUIMenuItemText_DoublesAmpersands();
     void __fastcall Test_GUIThemeIsDark_ChosenThemeIgnoresWindows();
     void __fastcall Test_GUIThemeIsDark_WindowsFollowsAppModeUnlessHighContrast();
+    void __fastcall Test_GUIThemeNames_ListsTheFilesOfOneKindSorted();
     void __fastcall Test_GUIThemeProblemLine_NamesTheTheme();
+    void __fastcall Test_GUIThemesFolderPath_IsBesideTheLayoutFile();
     void __fastcall Test_GUIVCLStyleDarkThemeNames_SortedWithoutCarbon();
     void __fastcall Test_LoadGUIDarkTheme_CarbonWhenMissingEmptyOrCarbon();
     void __fastcall Test_LoadGUIDarkTheme_KeepsOtherNames();
@@ -63,6 +66,7 @@ __published:
     void __fastcall Test_LoadGUITheme_IgnoresCase();
     void __fastcall Test_LoadGUITheme_WindowsWhenMissingOrUnknown();
     void __fastcall Test_LoadGUIThemeFromLayoutFile_WindowsWithoutAFile();
+    void __fastcall Test_SaveGUIDarkThemeToLayoutFile_KeepsNonASCIINames();
     void __fastcall Test_SaveGUIDarkThemeToLayoutFile_KeepsTheThemeAndLayout();
     void __fastcall Test_SaveGUITheme_RoundTrips();
     void __fastcall Test_SaveGUIThemeToLayoutFile_KeepsTheLayout();

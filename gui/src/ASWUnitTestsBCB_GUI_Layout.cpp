@@ -207,6 +207,17 @@ TGUILayout LoadGUILayout(TCustomIniFile& ini)
     return layout;
 }
 //---------------------------------------------------------------------------
+/*
+    NewGUILayoutFile
+
+    Without an encoding, a TMemIniFile reads a file without a byte order mark, and writes a new one, in the ANSI code
+    page, which loses each character it doesn't have. TEncoding::UTF8 is shared, never freed by the TMemIniFile.
+*/
+TMemIniFile* NewGUILayoutFile(UnicodeString const& path)
+{
+    return new TMemIniFile(path, TEncoding::UTF8);
+}
+//---------------------------------------------------------------------------
 void SaveGUILayout(TCustomIniFile& ini, TGUILayout const& layout)
 {
     WriteOrDelete(ini, PanelsSection, "DetailHeight", layout.DetailHeight);

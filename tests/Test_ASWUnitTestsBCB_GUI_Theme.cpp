@@ -27,6 +27,7 @@ limitations under the License.
 // Module header
 #include "Test_ASWUnitTestsBCB_GUI_Theme.h"
 //---------------------------------------------------------------------------
+#include <algorithm>
 #include <cstddef>
 #include <memory>
 #include <string>
@@ -119,6 +120,28 @@ void TTest_ASWUnitTestsBCB_GUI_Theme::TearDown_Group()
 // /////// Begin tests after this line ///////////////////////
 
 //---------------------------------------------------------------------------
+void __fastcall TTest_ASWUnitTestsBCB_GUI_Theme::Test_FileNamesInFolder_ListsOnlyTheFiles()
+{
+    // Arrange: two files, one with a non-ASCII name (U+4E2D), and a folder named like a style file, with a file in it.
+    UnicodeString const folder = TPath::Combine(m_TempFolder, "Files");
+    ForceDirectories(TPath::Combine(folder, "Folder.vsf"));
+    TFile::WriteAllText(TPath::Combine(folder, "Ocean.vsf"), "x");
+    TFile::WriteAllText(TPath::Combine(folder, FromUTF8("\xE4\xB8\xAD.vsf")), "x");
+    TFile::WriteAllText(TPath::Combine(TPath::Combine(folder, "Folder.vsf"), "Inside.vsf"), "x");
+
+    // Act
+    std::vector<std::string> names = FileNamesInFolder(folder);
+    std::vector<std::string> const missing = FileNamesInFolder(TPath::Combine(folder, "Missing"));
+
+    // Assert: both sorted the same way, since where a non-ASCII byte sorts depends on whether char is signed.
+    char const* const files[] = { "Ocean.vsf", "\xE4\xB8\xAD.vsf" };
+    std::vector<std::string> expected(files, files + 2);
+    std::sort(expected.begin(), expected.end());
+    std::sort(names.begin(), names.end());
+    CheckEquals(Joined(expected), Joined(names), ASWBCB_HERE, "the files' names, in UTF-8, without the folder's");
+    CheckEquals("", Joined(missing), ASWBCB_HERE, "a folder that doesn't exist");
+}
+//---------------------------------------------------------------------------
 void __fastcall TTest_ASWUnitTestsBCB_GUI_Theme::Test_FindGUIBuiltInDarkTheme_MatchesIgnoringCase()
 {
     // Arrange
@@ -180,11 +203,43 @@ void __fastcall TTest_ASWUnitTestsBCB_GUI_Theme::Test_GUIThemeIsDark_WindowsFoll
     CheckFalse(GUIThemeIsDark(EGUITheme::Windows, false, true), ASWBCB_HERE, "light app mode under high contrast");
 }
 //---------------------------------------------------------------------------
+void __fastcall TTest_ASWUnitTestsBCB_GUI_Theme::Test_GUIThemeNames_ListsTheFilesOfOneKindSorted()
+{
+    // Arrange: the Themes folder's files, in the order a listing might give them.
+    char const* const files[] = {
+        "ocean.vsf", "Zest.vsf", "Notes.txt", "Carbon.vsf", "OCEAN.VSF", ".vsf", "apple.Vsf", "carbon.VSF",
+        "Ocean.vsf.bak", "Forest.ini", "vsf", "Two Words.vsf", "onyx blue.vsf",
+    };
+    std::vector<std::string> const fileNames(files, files + 13);
+    std::vector<std::string> const carbon(1, "Carbon");
+    char const* const linked[] = { "Carbon", "Onyx Blue", "Zest" };
+    std::vector<std::string> const builtIns(linked, linked + 3);
+
+    // Act and Assert
+    CheckEquals("apple | ocean | onyx blue | Two Words | Zest", Joined(GUIThemeNames(fileNames, ".vsf", carbon)),
+        ASWBCB_HERE, "the .vsf files' names, sorted ignoring case, a name once, without Carbon or a bare extension");
+    CheckEquals("apple | ocean | Two Words", Joined(GUIThemeNames(fileNames, ".vsf", builtIns)), ASWBCB_HERE,
+        "without any built-in theme's name, ignoring case");
+    CheckEquals("Forest", Joined(GUIThemeNames(fileNames, ".ini", carbon)), ASWBCB_HERE, "another extension");
+    CheckEquals("", Joined(GUIThemeNames(std::vector<std::string>(), ".vsf", carbon)), ASWBCB_HERE,
+        "an empty or missing folder");
+}
+//---------------------------------------------------------------------------
 void __fastcall TTest_ASWUnitTestsBCB_GUI_Theme::Test_GUIThemeProblemLine_NamesTheTheme()
 {
     // Act and Assert
     CheckEquals("Dark theme \"Onyx Blue\": It isn't linked in.",
         GUIThemeProblemLine("Onyx Blue", "It isn't linked in."), ASWBCB_HERE);
+}
+//---------------------------------------------------------------------------
+void __fastcall TTest_ASWUnitTestsBCB_GUI_Theme::Test_GUIThemesFolderPath_IsBesideTheLayoutFile()
+{
+    // Act
+    UnicodeString const folder = GUIThemesFolderPath();
+
+    // Assert
+    CheckEquals(TPath::Combine(ExtractFileDir(GUILayoutFilePath()), "Themes"), folder, ASWBCB_HERE,
+        "a Themes folder in the layout file's folder, which is %APPDATA%\\ASWUnitTestsBCB");
 }
 //---------------------------------------------------------------------------
 void __fastcall TTest_ASWUnitTestsBCB_GUI_Theme::Test_GUIVCLStyleDarkThemeNames_SortedWithoutCarbon()
@@ -293,6 +348,20 @@ void __fastcall TTest_ASWUnitTestsBCB_GUI_Theme::Test_LoadGUIThemeFromLayoutFile
         "a folder's path");
 }
 //---------------------------------------------------------------------------
+void __fastcall TTest_ASWUnitTestsBCB_GUI_Theme::Test_SaveGUIDarkThemeToLayoutFile_KeepsNonASCIINames()
+{
+    // Arrange: a theme file's name with U+00E9, which Windows-1252 has, and U+4E2D, which no Western code page has.
+    UnicodeString const path = TPath::Combine(TPath::Combine(m_TempFolder, "NonASCII"), "layout.ini");
+    std::string const name = "Caf\xC3\xA9 \xE4\xB8\xAD";
+
+    // Act
+    SaveGUIDarkThemeToLayoutFile(path, name);
+    SaveGUIThemeToLayoutFile(path, EGUITheme::Dark);
+
+    // Assert
+    CheckEquals(name, LoadGUIDarkThemeFromLayoutFile(path), ASWBCB_HERE, "read back, after another value was saved");
+}
+//---------------------------------------------------------------------------
 void __fastcall TTest_ASWUnitTestsBCB_GUI_Theme::Test_SaveGUIDarkThemeToLayoutFile_KeepsTheThemeAndLayout()
 {
     // Arrange: a layout file with a theme, in a folder that doesn't exist yet.
@@ -301,7 +370,7 @@ void __fastcall TTest_ASWUnitTestsBCB_GUI_Theme::Test_SaveGUIDarkThemeToLayoutFi
     layout.DetailHeight = 123;
     ForceDirectories(ExtractFileDir(path));
     {
-        std::unique_ptr<TMemIniFile> const ini(new TMemIniFile(path));
+        std::unique_ptr<TMemIniFile> const ini(NewGUILayoutFile(path));
         SaveGUILayout(*ini, layout);
         ini->UpdateFile();
     }
@@ -313,7 +382,7 @@ void __fastcall TTest_ASWUnitTestsBCB_GUI_Theme::Test_SaveGUIDarkThemeToLayoutFi
     // Assert
     CheckEquals("Onyx Blue", LoadGUIDarkThemeFromLayoutFile(path), ASWBCB_HERE, "the dark theme is saved");
     CheckEquals(EGUITheme::Dark, LoadGUIThemeFromLayoutFile(path), ASWBCB_HERE, "the theme is kept");
-    std::unique_ptr<TMemIniFile> const ini(new TMemIniFile(path));
+    std::unique_ptr<TMemIniFile> const ini(NewGUILayoutFile(path));
     TGUILayout const loaded = LoadGUILayout(*ini);
     AssertTrue(loaded.DetailHeight.HasValue(), ASWBCB_HERE, "the layout is kept");
     CheckEquals(123, loaded.DetailHeight.Value(), ASWBCB_HERE, "with its value");
@@ -354,7 +423,7 @@ void __fastcall TTest_ASWUnitTestsBCB_GUI_Theme::Test_SaveGUIThemeToLayoutFile_K
     layout.TestTreeWidth = 321;
     ForceDirectories(ExtractFileDir(path));
     {
-        std::unique_ptr<TMemIniFile> const ini(new TMemIniFile(path));
+        std::unique_ptr<TMemIniFile> const ini(NewGUILayoutFile(path));
         SaveGUILayout(*ini, layout);
         ini->UpdateFile();
     }
@@ -363,7 +432,7 @@ void __fastcall TTest_ASWUnitTestsBCB_GUI_Theme::Test_SaveGUIThemeToLayoutFile_K
     SaveGUIThemeToLayoutFile(path, EGUITheme::Dark);
 
     // Assert
-    std::unique_ptr<TMemIniFile> const ini(new TMemIniFile(path));
+    std::unique_ptr<TMemIniFile> const ini(NewGUILayoutFile(path));
     CheckEquals(EGUITheme::Dark, LoadGUIThemeFromLayoutFile(path), ASWBCB_HERE,
         "the theme is saved");
     TGUILayout const loaded = LoadGUILayout(*ini);

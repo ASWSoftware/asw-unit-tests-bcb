@@ -40,9 +40,12 @@ bool ApplyGUITheme(EGUITheme theme, System::UnicodeString const& darkStyle);
 // the VCL styles linked in.
 std::vector<std::string> BuiltInGUIDarkThemeNames();
 // The VCL style the dark theme 'darkTheme' is, for ApplyGUITheme(): the built-in one of that name, ignoring case (see
-// BuiltInGUIDarkThemeNames()). Otherwise Carbon, with a line for the log added to 'problems' (see
-// GUIThemeProblemLine()).
-System::UnicodeString LoadGUIDarkStyle(std::string const& darkTheme, std::vector<std::string>& problems);
+// BuiltInGUIDarkThemeNames()); otherwise the style in "<darkTheme>.vsf" in 'themesFolder' (see GUIThemesFolderPath()),
+// loaded the first time it's needed. Adds a line for the log to 'problems' (see GUIThemeProblemLine()), and gives
+// Carbon, when the file is missing, isn't a VCL style, has the name of a style already loaded from elsewhere, or can't
+// be loaded.
+System::UnicodeString LoadGUIDarkStyle(System::UnicodeString const& themesFolder, std::string const& darkTheme,
+    std::vector<std::string>& problems);
 
 } // namespace ASWUnitTestsBCB
 

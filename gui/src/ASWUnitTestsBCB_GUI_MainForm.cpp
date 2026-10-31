@@ -51,6 +51,8 @@ limitations under the License.
 #include <Vcl.Forms.hpp>
 #include <Vcl.Graphics.hpp>
 #include <Vcl.Themes.hpp>
+#include <windows.h>
+#include <shellapi.h>
 //---------------------------------------------------------------------------
 #include "ASWUnitTestsBCB_CLI.h"
 #include "ASWUnitTestsBCB_Exception.h"
@@ -107,6 +109,7 @@ std::vector<TRect> MonitorWorkAreas();
 void* NodeData(TNodeKind kind, std::size_t index);
 std::size_t NodeIndex(void* data);
 TNodeKind NodeKind(void* data);
+void OpenFolderInExplorer(UnicodeString const& folderPath);
 TColor SkipColor();
 TTreeNode* SuiteTreeNode(TTreeNodes* nodes, TGUITestList const& testList, std::string const& suitePath,
     std::vector<TTreeNode*>& suiteNodes);
@@ -264,6 +267,20 @@ std::size_t NodeIndex(void* data)
 TNodeKind NodeKind(void* data)
 {
     return static_cast<TNodeKind>(reinterpret_cast<NativeUInt>(data) % 4);
+}
+//---------------------------------------------------------------------------
+/*
+    OpenFolderInExplorer
+
+    Opens the folder in a File Explorer window, or throws an RTL exception if it can't, e.g. because the folder doesn't
+    exist. ShellExecuteW() returns a value above 32 on success.
+*/
+void OpenFolderInExplorer(UnicodeString const& folderPath)
+{
+    HINSTANCE const result = ::ShellExecuteW(nullptr, L"open", folderPath.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+
+    if (reinterpret_cast<INT_PTR>(result) <= 32)
+        throw Exception(UnicodeString("Couldn't open the folder ") + folderPath);
 }
 //---------------------------------------------------------------------------
 /*
@@ -507,6 +524,11 @@ void __fastcall TFormASWUnitTestsBCBGUIMain::Act_ExportJUnitReportExecute(TObjec
 void __fastcall TFormASWUnitTestsBCBGUIMain::Act_FocusFilterExecute(TObject* /*Sender*/)
 {
     RunGuarded("Filter", &this->DoFocusFilter);
+}
+//---------------------------------------------------------------------------
+void __fastcall TFormASWUnitTestsBCBGUIMain::Act_OpenThemesFolderExecute(TObject* /*Sender*/)
+{
+    RunGuarded("Theme > Dark Theme > Open Themes Folder", &this->DoOpenThemesFolder);
 }
 //---------------------------------------------------------------------------
 void __fastcall TFormASWUnitTestsBCBGUIMain::Act_ResetLayoutExecute(TObject* /*Sender*/)
@@ -923,6 +945,14 @@ void __fastcall TFormASWUnitTestsBCBGUIMain::DoCommandLineOptions()
     ShowTextDialog(caption, TGUICommandLine::HelpText());
 }
 //---------------------------------------------------------------------------
+void __fastcall TFormASWUnitTestsBCBGUIMain::DoCopyDetails()
+{
+    UnicodeString const details = Mem_Detail->Text;
+    Clipboard()->AsText = details;
+    m_StatusMessage = "Details copied to the clipboard.";
+    UpdateStatusBar();
+}
+//---------------------------------------------------------------------------
 /*
     TFormASWUnitTestsBCBGUIMain::DoDarkThemeItemClick
 
@@ -940,14 +970,6 @@ void __fastcall TFormASWUnitTestsBCBGUIMain::DoDarkThemeItemClick()
     }
 
     SetDarkTheme(m_DarkThemeNames[static_cast<std::size_t>(item->Tag)]);
-}
-//---------------------------------------------------------------------------
-void __fastcall TFormASWUnitTestsBCBGUIMain::DoCopyDetails()
-{
-    UnicodeString const details = Mem_Detail->Text;
-    Clipboard()->AsText = details;
-    m_StatusMessage = "Details copied to the clipboard.";
-    UpdateStatusBar();
 }
 //---------------------------------------------------------------------------
 void __fastcall TFormASWUnitTestsBCBGUIMain::DoExpandAll()
@@ -1008,6 +1030,18 @@ void __fastcall TFormASWUnitTestsBCBGUIMain::DoFocusFilter()
 
     Edt_Filter->SetFocus();
     Edt_Filter->SelectAll();
+}
+//---------------------------------------------------------------------------
+/*
+    TFormASWUnitTestsBCBGUIMain::DoOpenThemesFolder
+
+    Creates the folder first, so there's somewhere to put the first style file.
+*/
+void __fastcall TFormASWUnitTestsBCBGUIMain::DoOpenThemesFolder()
+{
+    UnicodeString const folder = GUIThemesFolderPath();
+    ForceDirectories(folder);
+    OpenFolderInExplorer(folder);
 }
 //---------------------------------------------------------------------------
 /*
@@ -1219,13 +1253,16 @@ void TFormASWUnitTestsBCBGUIMain::FailRunOnUnhandledException(std::string const&
 /*
     TFormASWUnitTestsBCBGUIMain::FillDarkThemeMenu
 
-    Called from Start(), and again as the submenu opens, so its check mark follows the choice. The built-in themes (see
-    BuiltInGUIDarkThemeNames()), Carbon first; the chosen one is checked. A chosen theme that isn't one of them, e.g. a
-    style the project doesn't link in, is still listed, so choosing it again reports why it isn't used. The menu gives
-    each item an accelerator of its own (its AutoHotkeys).
+    Called from Start(), and again as the submenu opens, so its check mark follows the choice, and a file added or
+    removed since shows at once. The built-in themes first (see BuiltInGUIDarkThemeNames()), Carbon at the top, then a
+    line and the VCL style files in GUIThemesFolderPath() (see GUIThemeNames()), above the line and Open Themes Folder
+    the form has; the chosen one is checked. A chosen theme that's neither, e.g. one whose file was removed, is listed
+    anyway, so choosing it again reports why it isn't used. The menu gives each item an accelerator of its own (its
+    AutoHotkeys), other than Open Themes Folder's O.
 
     The new items are added before the old ones are deleted: deleting a submenu's last item turns its parent into a
-    plain item, which, as the submenu opens, keeps it from opening.
+    plain item, which, as the submenu opens, keeps it from opening. (Open Themes Folder now keeps it from being the
+    last, but the order stays right.)
 */
 void __fastcall TFormASWUnitTestsBCBGUIMain::FillDarkThemeMenu()
 {
@@ -1233,6 +1270,11 @@ void __fastcall TFormASWUnitTestsBCBGUIMain::FillDarkThemeMenu()
     m_DarkThemeItems.clear();
 
     std::vector<std::string> names = BuiltInGUIDarkThemeNames();
+    std::size_t const builtInCount = names.size();
+    std::vector<std::string> const files = GUIThemeNames(FileNamesInFolder(GUIThemesFolderPath()), ".vsf", names);
+    names.insert(names.end(), files.begin(), files.end());
+
+    // Windows' file names ignore case, so a name saved in another case is still that file's.
     std::string chosen = FindGUIBuiltInDarkTheme(names, m_DarkTheme);
 
     if (chosen.empty())
@@ -1241,8 +1283,19 @@ void __fastcall TFormASWUnitTestsBCBGUIMain::FillDarkThemeMenu()
         names.push_back(chosen);
     }
 
+    int position = 0;
+
     for (std::size_t i = 0; i < names.size(); ++i)
     {
+        // A line between the built-in themes and the files.
+        if (i == builtInCount)
+        {
+            TMenuItem* const line = new TMenuItem(this);
+            m_DarkThemeItems.push_back(line);
+            line->Caption = "-";
+            MI_ViewDarkTheme->Insert(position++, line);
+        }
+
         TMenuItem* const item = new TMenuItem(this);
         m_DarkThemeItems.push_back(item);
 
@@ -1251,7 +1304,7 @@ void __fastcall TFormASWUnitTestsBCBGUIMain::FillDarkThemeMenu()
         item->OnClick = DarkThemeItemClick;
         item->RadioItem = true;
         item->Tag = static_cast<NativeInt>(i);
-        MI_ViewDarkTheme->Add(item);
+        MI_ViewDarkTheme->Insert(position++, item);
     }
 
     m_DarkThemeNames = names;
@@ -1314,7 +1367,7 @@ void TFormASWUnitTestsBCBGUIMain::LoadLayout()
         if (!FileExists(path))
             return;
 
-        std::unique_ptr<TMemIniFile> const ini(new TMemIniFile(path));
+        std::unique_ptr<TMemIniFile> const ini(NewGUILayoutFile(path));
         layout = LoadGUILayout(*ini);
     }
     catch (...)
@@ -1747,7 +1800,7 @@ void TFormASWUnitTestsBCBGUIMain::SaveLayout()
         UnicodeString const path = GUILayoutFilePath();
         ForceDirectories(ExtractFileDir(path));
 
-        std::unique_ptr<TMemIniFile> const ini(new TMemIniFile(path));
+        std::unique_ptr<TMemIniFile> const ini(NewGUILayoutFile(path));
         SaveGUILayout(*ini, CurrentLayout());
         ini->UpdateFile();
     }
@@ -1775,8 +1828,9 @@ void TFormASWUnitTestsBCBGUIMain::SaveSelection()
 /*
     TFormASWUnitTestsBCBGUIMain::SetDarkTheme
 
-    Applied at once while the theme is dark; while it's light, the status bar says it shows once the theme is dark.
-    Saved at once, as SetTheme() saves the theme.
+    Applied at once while the theme is dark; while it's light, its file is still loaded, so its problems show in the
+    log, and the status bar says it shows once the theme is dark. A VCL style file already loaded isn't read again (see
+    LoadGUIDarkStyle()). Saved at once, as SetTheme() saves the theme.
 */
 void TFormASWUnitTestsBCBGUIMain::SetDarkTheme(std::string const& name)
 {
@@ -1786,7 +1840,7 @@ void TFormASWUnitTestsBCBGUIMain::SetDarkTheme(std::string const& name)
         SaveGUIDarkThemeToLayoutFile(GUILayoutFilePath(), name);
 
     std::vector<std::string> problems;
-    m_DarkStyle = LoadGUIDarkStyle(name, problems);
+    m_DarkStyle = LoadGUIDarkStyle(GUIThemesFolderPath(), name, problems);
     ApplyTheme();
 
     if (GUIThemeIsDark(m_Theme, WindowsAppsUseDarkTheme(), WindowsHighContrast()))
