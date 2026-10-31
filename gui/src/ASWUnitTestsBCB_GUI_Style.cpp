@@ -33,6 +33,10 @@ limitations under the License.
 //---------------------------------------------------------------------------
 #include <System.IOUtils.hpp>
 #include <System.SysUtils.hpp>
+#include <System.Types.hpp>
+#include <Vcl.ComCtrls.hpp>
+#include <Vcl.Controls.hpp>
+#include <Vcl.Graphics.hpp>
 #include <Vcl.Styles.hpp> // Links the unit that registers the engine loading VCL style resources, e.g. Carbon.
 #include <Vcl.Themes.hpp>
 //---------------------------------------------------------------------------
@@ -42,6 +46,10 @@ limitations under the License.
 using namespace System;
 using namespace System::Ioutils;
 using namespace System::Sysutils;
+using namespace System::Types;
+using namespace Vcl::Comctrls;
+using namespace Vcl::Controls;
+using namespace Vcl::Graphics;
 using namespace Vcl::Themes;
 //---------------------------------------------------------------------------
 
@@ -51,6 +59,46 @@ namespace
 // Each VCL style file LoadGUIDarkStyle() has loaded, by its path in lowercase, and the name of its style. Not a
 // function-local static, which bcc32 warns about (W8104) since it has a constructor.
 std::vector<std::pair<UnicodeString, UnicodeString> > LoadedStyleFiles;
+// Whether ApplyGUITheme() has registered TGUIStatusBarStyleHook, which can be registered only once.
+bool StatusBarStyleHookRegistered = false;
+
+/////////////////////////////////////////////////////////////////////////////
+// TGUIStatusBarStyleHook
+//
+// The style hook that draws a status bar under a VCL style, drawing its panels' text as it is. VCL's own draws it
+// without DT_NOPREFIX, so an '&' in it is taken as an accelerator prefix and isn't shown ("R&D" shows as "RD"), which
+// the unstyled status bar doesn't do.
+/////////////////////////////////////////////////////////////////////////////
+class TGUIStatusBarStyleHook : public TStatusBarStyleHook
+{
+    typedef TStatusBarStyleHook inherited;
+
+public:
+    __fastcall virtual TGUIStatusBarStyleHook(TWinControl* control);
+
+    // Defined outside the class, since bcc32 warns (W8026) that it can't inline a function taking a string by value.
+    virtual void __fastcall DrawControlText(TCanvas* canvas, TThemedElementDetails const& details,
+        UnicodeString const text, TRect& rect, unsigned flags);
+};
+
+//---------------------------------------------------------------------------
+
+/////////////////////////////////////////////////////////////////////////////
+// TGUIStatusBarStyleHook
+/////////////////////////////////////////////////////////////////////////////
+
+//---------------------------------------------------------------------------
+__fastcall TGUIStatusBarStyleHook::TGUIStatusBarStyleHook(TWinControl* control)
+    : inherited(control)
+{
+}
+//---------------------------------------------------------------------------
+void __fastcall TGUIStatusBarStyleHook::DrawControlText(TCanvas* canvas, TThemedElementDetails const& details,
+    UnicodeString const text, TRect& rect, unsigned flags)
+{
+    inherited::DrawControlText(canvas, details, text, rect, flags | DT_NOPREFIX);
+}
+//---------------------------------------------------------------------------
 
 } // namespace
 
@@ -65,9 +113,19 @@ namespace ASWUnitTestsBCB
 
     TrySetStyle() leaves the style as it is if the dark style's resource isn't linked in (the GUI project's
     Custom_Styles), or the Vcl.Styles unit isn't, which loads it. "Windows" is the default, unstyled look's name.
+
+    The style engine gives a control the style hook registered last for its class, creating it when the control
+    first handles a message while a style is active, so registering TGUIStatusBarStyleHook here, before any style is
+    set, replaces VCL's for every status bar.
 */
 bool ApplyGUITheme(EGUITheme theme, UnicodeString const& darkStyle)
 {
+    if (!StatusBarStyleHookRegistered)
+    {
+        TCustomStyleEngine::RegisterStyleHook(__classid(TStatusBar), __classid(TGUIStatusBarStyleHook));
+        StatusBarStyleHookRegistered = true;
+    }
+
     bool const dark = GUIThemeIsDark(theme, WindowsAppsUseDarkTheme(), WindowsHighContrast());
     UnicodeString const styleName = dark ? darkStyle : UnicodeString("Windows");
 

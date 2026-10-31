@@ -34,7 +34,8 @@ namespace ASWUnitTestsBCB
 
 // Sets the VCL style for 'theme' (see GUIThemeIsDark()): 'darkStyle' (see LoadGUIDarkStyle()) when it's dark,
 // otherwise the default unstyled look. Returns whether the active style changed. Call it on the main thread; before any
-// form exists, each form is created in that style, and afterward it restyles the open ones.
+// form exists, each form is created in that style, and afterward it restyles the open ones. From the first call on, a
+// status bar shows an '&' in its text in a style, as it does without one.
 bool ApplyGUITheme(EGUITheme theme, System::UnicodeString const& darkStyle);
 // The dark themes this executable has built in, for the View > Theme > Dark Theme menu: GUIBuiltInDarkThemeNames() for
 // the VCL styles linked in.
