@@ -125,6 +125,7 @@ __published: // IDE-managed Components
     TMenuItem* MI_TestsSeparator1;
     TMenuItem* MI_View;
     TMenuItem* MI_ViewCollapseAll;
+    TMenuItem* MI_ViewDarkTheme;
     TMenuItem* MI_ViewExpandAll;
     TMenuItem* MI_ViewResetLayout;
     TMenuItem* MI_ViewSeparator1;
@@ -132,6 +133,7 @@ __published: // IDE-managed Components
     TMenuItem* MI_ViewTheme;
     TMenuItem* MI_ViewThemeDark;
     TMenuItem* MI_ViewThemeLight;
+    TMenuItem* MI_ViewThemeSeparator1;
     TMenuItem* MI_ViewThemeWindows;
     TMainMenu* MM_Main;
     TProgressBar* PB_Progress;
@@ -172,6 +174,7 @@ __published: // IDE-managed Components
     void __fastcall LV_FailuresCustomDrawItem(TCustomListView* Sender, TListItem* Item, TCustomDrawState State,
         bool& DefaultDraw);
     void __fastcall LV_FailuresDblClick(TObject* Sender);
+    void __fastcall MI_ViewDarkThemeClick(TObject* Sender);
     void __fastcall TV_TestsChange(TObject* Sender, TTreeNode* Node);
     void __fastcall TV_TestsCheckStateChanging(TCustomTreeView* Sender, TTreeNode* Node,
         TNodeCheckState NewCheckState, TNodeCheckState OldCheckState, bool& AllowChange);
@@ -190,6 +193,16 @@ private: // User declarations
     bool m_CloseAfterRun;
     // The test that has started but not yet finished, if any.
     ASWUnitTestsBCB::TOptional<std::size_t> m_CurrentTestIndex;
+    // The VCL style m_DarkTheme is (see LoadGUIDarkStyle()), which ApplyTheme() uses while the theme is dark.
+    System::UnicodeString m_DarkStyle;
+    // The View > Theme > Dark Theme choice, e.g. GUIDefaultDarkThemeName().
+    std::string m_DarkTheme;
+    // The Dark Theme menu item a click is being handled for; see DarkThemeItemClick().
+    TMenuItem* m_DarkThemeClickItem;
+    // The items FillDarkThemeMenu() added to View > Theme > Dark Theme, one per dark theme, by index into
+    // m_DarkThemeNames, which each one's Tag is.
+    std::vector<TMenuItem*> m_DarkThemeItems;
+    std::vector<std::string> m_DarkThemeNames;
     // The layout from the DFM, at 96 DPI, captured before the saved one is applied, for Reset Layout.
     ASWUnitTestsBCB::TGUILayout m_DefaultLayout;
     TWndMethod m_FormWindowProc; // The form's own WindowProc, which FormWindowProc() passes messages on to
@@ -247,6 +260,8 @@ private:
     void CreateStatusImages();
     // The window's layout as it is now, for saving.
     ASWUnitTestsBCB::TGUILayout CurrentLayout();
+    // Chooses the dark theme of the View > Theme > Dark Theme item 'Sender'.
+    void __fastcall DarkThemeItemClick(TObject* Sender);
     // The bodies of the actions, run through RunGuarded().
     void __fastcall DoAbout();
     void __fastcall DoApplyTheme();
@@ -254,6 +269,7 @@ private:
     void __fastcall DoCloseWindow();
     void __fastcall DoCollapseAll();
     void __fastcall DoCommandLineOptions();
+    void __fastcall DoDarkThemeItemClick();
     void __fastcall DoCopyDetails();
     void __fastcall DoExpandAll();
     void __fastcall DoExportJUnitReport();
@@ -277,6 +293,8 @@ private:
     void __fastcall DoThemeWindows();
     // Ends a run that an unhandled exception escaped from, described by 'description'.
     void FailRunOnUnhandledException(std::string const& description);
+    // Lists the dark themes in View > Theme > Dark Theme; see the definition.
+    void __fastcall FillDarkThemeMenu();
     // Follows the theme as it changes; see the definition.
     void __fastcall FormWindowProc(TMessage& message);
     // Restores the layout SaveLayout() saved, if any; see the definition.
@@ -311,6 +329,9 @@ private:
     void SaveLayout();
     // Saves which tests are checked and shown for the next start, ignoring any error.
     void SaveSelection();
+    // Chooses View > Theme > Dark Theme's 'name', saving it, unless --layout-ignore, and applies it; see the
+    // definition.
+    void SetDarkTheme(std::string const& name);
     // Sets a tree node's status image from m_TestList: a test's own status, or a group's or suite's, from its tests.
     void SetNodeImage(TTreeNode* node);
     void SetRunning(bool running);
@@ -342,9 +363,12 @@ public: // User declarations
     // The process exit code: with --exit, what the console runner would have returned for the --run run; otherwise
     // ExitCode_Success, since the GUI was used interactively.
     int ExitCode() const;
-    // Loads the registered tests and applies 'options' (see WinMain()), and shows 'theme', the choice WinMain()
-    // applied, in the View > Theme menu. Call once, right after creating the form.
-    void Start(ASWUnitTestsBCB::TGUIOptions const& options, ASWUnitTestsBCB::EGUITheme theme);
+    // Loads the registered tests and applies 'options' (see WinMain()), and shows 'theme' and 'darkTheme', the choices
+    // WinMain() applied, in the View > Theme menu, with 'darkStyle', the VCL style LoadGUIDarkStyle() gave for
+    // 'darkTheme', and the problems it found in the log. Call once, right after creating the form.
+    void Start(ASWUnitTestsBCB::TGUIOptions const& options, ASWUnitTestsBCB::EGUITheme theme,
+        std::string const& darkTheme, System::UnicodeString const& darkStyle,
+        std::vector<std::string> const& themeProblems);
     // Whether a run was aborted by a timeout or a stack overflow, after which the process must end without its usual
     // cleanup (see WinMain()), as the console runner does: an abandoned test may still be running.
     bool WasRunAborted() const;

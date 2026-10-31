@@ -421,6 +421,7 @@ __fastcall TFormASWUnitTestsBCBGUIMain::TFormASWUnitTestsBCBGUIMain(TComponent* 
       m_CheckClickNode(nullptr),
       m_CheckClickOldState(ncsNone),
       m_CloseAfterRun(false),
+      m_DarkThemeClickItem(nullptr),
       m_KeepSelection(false),
       m_LastRunExitCode(ExitCode_Success),
       m_RunAborted(false),
@@ -820,6 +821,13 @@ TGUILayout TFormASWUnitTestsBCBGUIMain::CurrentLayout()
     return layout;
 }
 //---------------------------------------------------------------------------
+void __fastcall TFormASWUnitTestsBCBGUIMain::DarkThemeItemClick(TObject* Sender)
+{
+    m_DarkThemeClickItem = dynamic_cast<TMenuItem*>(Sender);
+    RunGuarded("Theme > Dark Theme", &this->DoDarkThemeItemClick);
+    m_DarkThemeClickItem = nullptr;
+}
+//---------------------------------------------------------------------------
 void __fastcall TFormASWUnitTestsBCBGUIMain::DoAbout()
 {
     ShowTextDialog(UnicodeString("About ") + Application->Title,
@@ -854,7 +862,7 @@ void __fastcall TFormASWUnitTestsBCBGUIMain::DoApplyTheme()
     }
 
     m_ThemeChangePending = false;
-    ApplyGUITheme(m_Theme);
+    ApplyGUITheme(m_Theme, m_DarkStyle);
 }
 //---------------------------------------------------------------------------
 /*
@@ -913,6 +921,25 @@ void __fastcall TFormASWUnitTestsBCBGUIMain::DoCommandLineOptions()
 {
     UnicodeString const caption = Application->Title + UnicodeString(" - Command Line Options");
     ShowTextDialog(caption, TGUICommandLine::HelpText());
+}
+//---------------------------------------------------------------------------
+/*
+    TFormASWUnitTestsBCBGUIMain::DoDarkThemeItemClick
+
+    The body of DarkThemeItemClick(), for m_DarkThemeClickItem. Not during a run, while the Theme commands are disabled
+    (see SetRunning()).
+*/
+void __fastcall TFormASWUnitTestsBCBGUIMain::DoDarkThemeItemClick()
+{
+    TMenuItem const* const item = m_DarkThemeClickItem;
+
+    if ((item == nullptr) || m_Running || (item->Tag < 0) ||
+        (static_cast<std::size_t>(item->Tag) >= m_DarkThemeNames.size()))
+    {
+        return;
+    }
+
+    SetDarkTheme(m_DarkThemeNames[static_cast<std::size_t>(item->Tag)]);
 }
 //---------------------------------------------------------------------------
 void __fastcall TFormASWUnitTestsBCBGUIMain::DoCopyDetails()
@@ -1189,6 +1216,50 @@ void TFormASWUnitTestsBCBGUIMain::FailRunOnUnhandledException(std::string const&
     UpdateDetail();
 }
 //---------------------------------------------------------------------------
+/*
+    TFormASWUnitTestsBCBGUIMain::FillDarkThemeMenu
+
+    Called from Start(), and again as the submenu opens, so its check mark follows the choice. The built-in themes (see
+    BuiltInGUIDarkThemeNames()), Carbon first; the chosen one is checked. A chosen theme that isn't one of them, e.g. a
+    style the project doesn't link in, is still listed, so choosing it again reports why it isn't used. The menu gives
+    each item an accelerator of its own (its AutoHotkeys).
+
+    The new items are added before the old ones are deleted: deleting a submenu's last item turns its parent into a
+    plain item, which, as the submenu opens, keeps it from opening.
+*/
+void __fastcall TFormASWUnitTestsBCBGUIMain::FillDarkThemeMenu()
+{
+    std::vector<TMenuItem*> const oldItems = m_DarkThemeItems;
+    m_DarkThemeItems.clear();
+
+    std::vector<std::string> names = BuiltInGUIDarkThemeNames();
+    std::string chosen = FindGUIBuiltInDarkTheme(names, m_DarkTheme);
+
+    if (chosen.empty())
+    {
+        chosen = m_DarkTheme;
+        names.push_back(chosen);
+    }
+
+    for (std::size_t i = 0; i < names.size(); ++i)
+    {
+        TMenuItem* const item = new TMenuItem(this);
+        m_DarkThemeItems.push_back(item);
+
+        item->Caption = FromUTF8(GUIMenuItemText(names[i]));
+        item->Checked = (names[i] == chosen);
+        item->OnClick = DarkThemeItemClick;
+        item->RadioItem = true;
+        item->Tag = static_cast<NativeInt>(i);
+        MI_ViewDarkTheme->Add(item);
+    }
+
+    m_DarkThemeNames = names;
+
+    for (std::vector<TMenuItem*>::const_iterator it = oldItems.begin(); it != oldItems.end(); ++it)
+        delete *it;
+}
+//---------------------------------------------------------------------------
 void __fastcall TFormASWUnitTestsBCBGUIMain::FormClose(TObject* /*Sender*/, TCloseAction& /*Action*/)
 {
     RunGuarded("closing the window", &this->DoSaveOnClose);
@@ -1329,6 +1400,16 @@ void __fastcall TFormASWUnitTestsBCBGUIMain::LV_FailuresCustomDrawItem(TCustomLi
 void __fastcall TFormASWUnitTestsBCBGUIMain::LV_FailuresDblClick(TObject* /*Sender*/)
 {
     RunGuarded("the Failures & Skips list", &this->DoSelectFailure);
+}
+//---------------------------------------------------------------------------
+/*
+    TFormASWUnitTestsBCBGUIMain::MI_ViewDarkThemeClick
+
+    The VCL calls a parent item's OnClick as its submenu opens.
+*/
+void __fastcall TFormASWUnitTestsBCBGUIMain::MI_ViewDarkThemeClick(TObject* /*Sender*/)
+{
+    RunGuarded("the Dark Theme menu", &this->FillDarkThemeMenu);
 }
 //---------------------------------------------------------------------------
 void __fastcall TFormASWUnitTestsBCBGUIMain::ObserverLogText(std::string const& text)
@@ -1691,6 +1772,34 @@ void TFormASWUnitTestsBCBGUIMain::SaveSelection()
     }
 }
 //---------------------------------------------------------------------------
+/*
+    TFormASWUnitTestsBCBGUIMain::SetDarkTheme
+
+    Applied at once while the theme is dark; while it's light, the status bar says it shows once the theme is dark.
+    Saved at once, as SetTheme() saves the theme.
+*/
+void TFormASWUnitTestsBCBGUIMain::SetDarkTheme(std::string const& name)
+{
+    m_DarkTheme = name;
+
+    if (!m_Options.LayoutIgnore)
+        SaveGUIDarkThemeToLayoutFile(GUILayoutFilePath(), name);
+
+    std::vector<std::string> problems;
+    m_DarkStyle = LoadGUIDarkStyle(name, problems);
+    ApplyTheme();
+
+    if (GUIThemeIsDark(m_Theme, WindowsAppsUseDarkTheme(), WindowsHighContrast()))
+        m_StatusMessage = "Dark theme: " + name + ".";
+    else
+        m_StatusMessage = "Dark theme: " + name + ", shown while the theme is dark.";
+
+    for (std::vector<std::string>::const_iterator it = problems.begin(); it != problems.end(); ++it)
+        AppendLog(*it + "\n");
+
+    UpdateStatusBar();
+}
+//---------------------------------------------------------------------------
 void TFormASWUnitTestsBCBGUIMain::SetNodeImage(TTreeNode* node)
 {
     void* const data = node->Data;
@@ -1747,6 +1856,7 @@ void TFormASWUnitTestsBCBGUIMain::SetRunning(bool running)
     Act_ThemeDark->Enabled = !running;
     Act_ThemeLight->Enabled = !running;
     Act_ThemeWindows->Enabled = !running;
+    MI_ViewDarkTheme->Enabled = !running;
 
     UpdateStatusBar();
 
@@ -1792,11 +1902,15 @@ void TFormASWUnitTestsBCBGUIMain::ShowThemeState()
     the partition options to which tests start out checked, --filter to the filter box, and --shuffle and
     --shuffle-seed to the Options menu. Also restores the window layout saved when it last closed.
 */
-void TFormASWUnitTestsBCBGUIMain::Start(TGUIOptions const& options, EGUITheme theme)
+void TFormASWUnitTestsBCBGUIMain::Start(TGUIOptions const& options, EGUITheme theme, std::string const& darkTheme,
+    UnicodeString const& darkStyle, std::vector<std::string> const& themeProblems)
 {
     m_Options = options;
     m_Theme = theme;
+    m_DarkTheme = darkTheme;
+    m_DarkStyle = darkStyle;
     ShowThemeState();
+    FillDarkThemeMenu();
 
     // The observer always gets the log without color codes, whatever --color says.
     m_Observer.LogTextCallback = &this->ObserverLogText;
@@ -1844,6 +1958,9 @@ void TFormASWUnitTestsBCBGUIMain::Start(TGUIOptions const& options, EGUITheme th
         AppendLog("Note: --layout-ignore: the window layout and theme aren't loaded or saved, so it opens with the "
             "defaults.\n");
     }
+
+    for (std::vector<std::string>::const_iterator it = themeProblems.begin(); it != themeProblems.end(); ++it)
+        AppendLog(*it + "\n");
 
     if (m_Options.LayoutReset)
         ResetSavedLayout();

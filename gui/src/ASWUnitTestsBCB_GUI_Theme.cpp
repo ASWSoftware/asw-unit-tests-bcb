@@ -28,11 +28,15 @@ limitations under the License.
 #include "ASWUnitTestsBCB_GUI_Theme.h"
 //---------------------------------------------------------------------------
 #include <memory>
+#include <string>
+#include <vector>
 //---------------------------------------------------------------------------
 #include <System.IniFiles.hpp>
 #include <System.SysUtils.hpp>
 #include <System.Win.Registry.hpp>
 #include <windows.h>
+//---------------------------------------------------------------------------
+#include "ASWUnitTestsBCB_Utils.h"
 //---------------------------------------------------------------------------
 using namespace System;
 using namespace System::Inifiles;
@@ -43,8 +47,25 @@ using namespace System::Win::Registry;
 namespace
 {
 
+char const DarkThemeKey[] = "DarkTheme";
 char const ThemeKey[] = "Theme";
 char const ViewSection[] = "View";
+
+//---------------------------------------------------------------------------
+
+bool SameName(std::string const& a, std::string const& b);
+
+//---------------------------------------------------------------------------
+/*
+    SameName
+
+    Whether two theme names, UTF-8, are the same, ignoring the case of ASCII letters only, as SameText() does.
+*/
+bool SameName(std::string const& a, std::string const& b)
+{
+    return SameText(ASWUnitTestsBCB::FromUTF8(a), ASWUnitTestsBCB::FromUTF8(b));
+}
+//---------------------------------------------------------------------------
 
 } // namespace
 
@@ -53,6 +74,57 @@ char const ViewSection[] = "View";
 namespace ASWUnitTestsBCB
 {
 
+//---------------------------------------------------------------------------
+std::string FindGUIBuiltInDarkTheme(std::vector<std::string> const& builtInNames, std::string const& darkTheme)
+{
+    for (std::vector<std::string>::const_iterator it = builtInNames.begin(); it != builtInNames.end(); ++it)
+    {
+        if (SameName(*it, darkTheme))
+            return *it;
+    }
+
+    return std::string();
+}
+//---------------------------------------------------------------------------
+/*
+    GUIBuiltInDarkThemeNames
+
+    Carbon is listed even if it isn't linked in, since it's the default; choosing it then shows the light look, as Dark
+    does.
+*/
+std::vector<std::string> GUIBuiltInDarkThemeNames(std::vector<std::string> const& styleNames)
+{
+    std::vector<std::string> names(1, GUIDefaultDarkThemeName());
+    std::vector<std::string> const candidates = GUIVCLStyleDarkThemeNames();
+
+    for (std::vector<std::string>::const_iterator it = candidates.begin(); it != candidates.end(); ++it)
+    {
+        if (!FindGUIBuiltInDarkTheme(styleNames, *it).empty())
+            names.push_back(*it);
+    }
+
+    return names;
+}
+//---------------------------------------------------------------------------
+std::string GUIDefaultDarkThemeName()
+{
+    return "Carbon";
+}
+//---------------------------------------------------------------------------
+std::string GUIMenuItemText(std::string const& text)
+{
+    std::string caption;
+
+    for (std::string::const_iterator it = text.begin(); it != text.end(); ++it)
+    {
+        if (*it == '&')
+            caption += '&';
+
+        caption += *it;
+    }
+
+    return caption;
+}
 //---------------------------------------------------------------------------
 bool GUIThemeIsDark(EGUITheme theme, bool windowsAppsUseDark, bool highContrast)
 {
@@ -69,6 +141,47 @@ bool GUIThemeIsDark(EGUITheme theme, bool windowsAppsUseDark, bool highContrast)
     }
 
     return windowsAppsUseDark && !highContrast;
+}
+//---------------------------------------------------------------------------
+std::string GUIThemeProblemLine(std::string const& themeName, std::string const& problem)
+{
+    return "Dark theme \"" + themeName + "\": " + problem;
+}
+//---------------------------------------------------------------------------
+std::vector<std::string> GUIVCLStyleDarkThemeNames()
+{
+    std::vector<std::string> names;
+    names.push_back("Charcoal Dark Slate");
+    names.push_back("Cobalt XEMedia");
+    names.push_back("Onyx Blue");
+    names.push_back("Tablet Dark");
+    return names;
+}
+//---------------------------------------------------------------------------
+std::string LoadGUIDarkTheme(TCustomIniFile& ini)
+{
+    std::string const name = ToUTF8(ini.ReadString(ViewSection, DarkThemeKey, UnicodeString()));
+
+    if (name.empty() || SameName(name, GUIDefaultDarkThemeName()))
+        return GUIDefaultDarkThemeName();
+
+    return name;
+}
+//---------------------------------------------------------------------------
+std::string LoadGUIDarkThemeFromLayoutFile(UnicodeString const& layoutPath)
+{
+    try
+    {
+        if (!FileExists(layoutPath))
+            return GUIDefaultDarkThemeName();
+
+        std::unique_ptr<TMemIniFile> const ini(new TMemIniFile(layoutPath));
+        return LoadGUIDarkTheme(*ini);
+    }
+    catch (...)
+    {
+        return GUIDefaultDarkThemeName();
+    }
 }
 //---------------------------------------------------------------------------
 EGUITheme LoadGUITheme(TCustomIniFile& ini)
@@ -98,6 +211,28 @@ EGUITheme LoadGUIThemeFromLayoutFile(UnicodeString const& layoutPath)
     catch (...)
     {
         return EGUITheme::Windows;
+    }
+}
+//---------------------------------------------------------------------------
+void SaveGUIDarkTheme(TCustomIniFile& ini, std::string const& name)
+{
+    ini.WriteString(ViewSection, DarkThemeKey, FromUTF8(name));
+}
+//---------------------------------------------------------------------------
+void SaveGUIDarkThemeToLayoutFile(UnicodeString const& layoutPath, std::string const& name)
+{
+    try
+    {
+        ForceDirectories(ExtractFileDir(layoutPath));
+
+        // Reading the file's current values first keeps the layout and any other values in it.
+        std::unique_ptr<TMemIniFile> const ini(new TMemIniFile(layoutPath));
+        SaveGUIDarkTheme(*ini, name);
+        ini->UpdateFile();
+    }
+    catch (...)
+    {
+        // Not saving it (e.g. a read-only profile) only means the next start uses the default dark theme.
     }
 }
 //---------------------------------------------------------------------------

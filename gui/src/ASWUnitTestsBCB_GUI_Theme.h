@@ -21,6 +21,9 @@ limitations under the License.
 #ifndef ASWUnitTestsBCB_GUI_ThemeH
 #define ASWUnitTestsBCB_GUI_ThemeH
 //---------------------------------------------------------------------------
+#include <string>
+#include <vector>
+//---------------------------------------------------------------------------
 #include <System.hpp>
 #include <System.IniFiles.hpp>
 //---------------------------------------------------------------------------
@@ -44,15 +47,45 @@ enum class EGUITheme
 
 //---------------------------------------------------------------------------
 
+// The dark theme 'darkTheme' is among 'builtInNames' (see GUIBuiltInDarkThemeNames()), as that list names it, matching
+// it ignoring (ASCII) case; empty if it isn't one of them.
+std::string FindGUIBuiltInDarkTheme(std::vector<std::string> const& builtInNames, std::string const& darkTheme);
+// The dark themes the VCL GUI runner has built in, for its View > Theme > Dark Theme menu: Carbon (see
+// GUIDefaultDarkThemeName()), then each of GUIVCLStyleDarkThemeNames() that's among 'styleNames', the VCL styles linked
+// in (the GUI project's Custom_Styles), matching them ignoring (ASCII) case.
+std::vector<std::string> GUIBuiltInDarkThemeNames(std::vector<std::string> const& styleNames);
+// The name of the default dark theme, "Carbon": RAD Studio's Carbon VCL style, which the GUI project links in.
+std::string GUIDefaultDarkThemeName();
+// 'text', e.g. a dark theme's name, as a menu item's caption: each '&' doubled, so it shows rather than making the next
+// letter the item's accelerator.
+std::string GUIMenuItemText(std::string const& text);
 // Whether 'theme' is dark: Light and Dark as chosen, and Windows as 'windowsAppsUseDark' (Windows' app mode setting)
 // says, except that it's light while 'highContrast' is on, so the window shows high contrast's own colors.
 bool GUIThemeIsDark(EGUITheme theme, bool windowsAppsUseDark, bool highContrast);
+// A line for the log about one of the dark theme 'themeName''s problems: Dark theme "<name>": <problem>
+std::string GUIThemeProblemLine(std::string const& themeName, std::string const& problem);
+// The dark themes besides Carbon that the VCL GUI runner has built in when their VCL styles are linked in, sorted:
+// RAD Studio's dark VCL styles, by their style names.
+std::vector<std::string> GUIVCLStyleDarkThemeNames();
+// Reads the dark theme SaveGUIDarkTheme() wrote to 'ini', its [View] section's DarkTheme key: GUIDefaultDarkThemeName()
+// when it's missing or empty, or is that name in another case.
+std::string LoadGUIDarkTheme(System::Inifiles::TCustomIniFile& ini);
+// The dark theme SaveGUIDarkThemeToLayoutFile() saved in the layout file at 'layoutPath', e.g. GUILayoutFilePath(), or
+// GUIDefaultDarkThemeName() if there's none or it can't be read.
+std::string LoadGUIDarkThemeFromLayoutFile(System::UnicodeString const& layoutPath);
 // Reads the theme SaveGUITheme() wrote to 'ini', its [View] section's Theme key, ignoring (ASCII) case. Windows when
 // it's missing or isn't a theme's name.
 EGUITheme LoadGUITheme(System::Inifiles::TCustomIniFile& ini);
 // The theme SaveGUIThemeToLayoutFile() saved in the layout file at 'layoutPath', e.g. GUILayoutFilePath(), or
 // Windows if there's none or it can't be read.
 EGUITheme LoadGUIThemeFromLayoutFile(System::UnicodeString const& layoutPath);
+// Writes 'name', a dark theme's (see LoadGUIDarkTheme()), to 'ini'. For a TMemIniFile, the file itself is only written
+// by a later UpdateFile().
+void SaveGUIDarkTheme(System::Inifiles::TCustomIniFile& ini, std::string const& name);
+// Saves 'name', the dark theme's, in the layout file at 'layoutPath', e.g. GUILayoutFilePath(), keeping its other
+// values, and creating it and its folder if needed. Ignores any error, which only means the next start uses the
+// default dark theme.
+void SaveGUIDarkThemeToLayoutFile(System::UnicodeString const& layoutPath, std::string const& name);
 // Writes 'theme' to 'ini', as "Windows", "Light" or "Dark". For a TMemIniFile, the file itself is only written by a
 // later UpdateFile().
 void SaveGUITheme(System::Inifiles::TCustomIniFile& ini, EGUITheme theme);

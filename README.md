@@ -628,11 +628,17 @@ Reset Layout** restores the default layout right away; `--layout-ignore` and `--
 **View > Theme** chooses a light or dark look. **Use Windows Setting**, the default, follows
 Windows' app mode setting (Settings > Personalization > Colors), and switches as soon as it
 changes, but stays light while high contrast is on, so the window shows high contrast's own colors.
-**Light** and **Dark** keep that look whatever Windows is set to. Dark is RAD Studio's Carbon VCL
-style, and light the standard Windows look. A choice applies right away and is saved in the layout
-file at once, so the next session starts with it; **View > Reset Layout** leaves it as it is. The
-Theme commands are disabled during a run, and a change of the Windows setting during one applies
-when it ends.
+**Light** and **Dark** keep that look whatever Windows is set to. Dark is one of RAD Studio's dark
+VCL styles, Carbon unless **Dark Theme** (below) chooses another, and light the standard Windows
+look. A choice applies right away and is saved in the layout file at once, so the next session
+starts with it; **View > Reset Layout** leaves it as it is. The Theme commands are disabled during
+a run, and a change of the Windows setting during one applies when it ends.
+
+**View > Theme > Dark Theme** chooses the dark look's colors, used whenever the look is dark, with
+Dark or with Use Windows Setting: one of five of RAD Studio's dark VCL styles, Carbon (the default),
+Charcoal Dark Slate, Cobalt XEMedia, Onyx Blue and Tablet Dark. It lists the ones the executable
+links in, and Carbon always. The choice is saved in the layout file with the theme; a saved name
+that isn't one of them is reported in the Log tab, with Carbon used in its place.
 
 The window also remembers which tests are checked, in
 `%APPDATA%\ASWUnitTestsBCB\<exe name>.selection`, as long as the command line doesn't choose them
@@ -1142,8 +1148,10 @@ instead, remove the form and the `WinMain()` the wizard created, and add:
 - your test groups and the code they test;
 - a `WinMain()` modeled on `gui\rad370\ASWUnitTestsBCB_GUI.cpp`, which parses the command line,
   applies the saved theme and starts the main form;
-- RAD Studio's Carbon style, for the dark theme (Project > Options > Application > Appearance,
-  which this repository's project has as `Custom_Styles`); without it, Dark shows the light look.
+- RAD Studio's Carbon style, for the dark theme, and any of Charcoal Dark Slate, Cobalt XEMedia,
+  Onyx Blue and Tablet Dark for **Dark Theme** to offer (Project > Options > Application >
+  Appearance, which this repository's project has as `Custom_Styles`); without Carbon, Dark shows
+  the light look.
 
 Add both `src` and `gui\src` to the include path. One test group file can be in a console and a GUI
 project at the same time, so the same tests run in both.

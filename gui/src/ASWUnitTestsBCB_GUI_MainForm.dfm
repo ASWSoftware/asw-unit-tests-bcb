@@ -238,7 +238,7 @@ object FormASWUnitTestsBCBGUIMain: TFormASWUnitTestsBCBGUIMain
     Height = 19
     Panels = <
       item
-        Width = 120
+        Width = 170
       end
       item
         Width = 100
@@ -465,6 +465,13 @@ object FormASWUnitTestsBCBGUIMain: TFormASWUnitTestsBCBGUIMain
         object MI_ViewThemeDark: TMenuItem
           Action = Act_ThemeDark
           RadioItem = True
+        end
+        object MI_ViewThemeSeparator1: TMenuItem
+          Caption = '-'
+        end
+        object MI_ViewDarkTheme: TMenuItem
+          Caption = 'Dark &Theme'
+          OnClick = MI_ViewDarkThemeClick
         end
       end
     end

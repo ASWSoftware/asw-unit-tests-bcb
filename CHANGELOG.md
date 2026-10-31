@@ -17,13 +17,18 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   tests in the VCL GUI runner needs Carbon among its custom styles (Project > Options >
   Application > Appearance), without which Dark shows the light look, and a `WinMain()` that
   applies the saved theme (see Changed).
+- **View > Theme > Dark Theme** in the VCL GUI runner chooses the dark look's colors from five of
+  RAD Studio's dark VCL styles: Carbon (the default), Charcoal Dark Slate, Cobalt XEMedia, Onyx Blue
+  and Tablet Dark. It lists the ones the executable links in as custom styles, and Carbon always.
+  The choice is saved in the layout file with the theme.
 
 ### Changed
 
 - A VCL GUI project of your own needs the two new files in `gui\src`,
   `ASWUnitTestsBCB_GUI_Style.cpp` and `ASWUnitTestsBCB_GUI_Theme.cpp`, and its `WinMain()` must
-  apply the saved theme before creating the main form and pass it to the form's `Start()`, which
-  now takes the theme as well as the options, as `gui\rad370\ASWUnitTestsBCB_GUI.cpp` does.
+  load the saved theme and dark theme and apply them before creating the main form, then pass them
+  to the form's `Start()`, which now takes them, the dark theme's VCL style and the problems found
+  loading it as well as the options, as `gui\rad370\ASWUnitTestsBCB_GUI.cpp` does.
 
 ## [1.0.0] - 2026-10-15
 
