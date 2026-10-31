@@ -34,6 +34,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   to the form's `Start()`, which now takes them, the dark theme's VCL style and the problems found
   loading it as well as the options, as `gui\rad370\ASWUnitTestsBCB_GUI.cpp` does.
 
+### Fixed
+
+- The VCL GUI runner's tooltips for Run Selected and Copy Details showed their keyboard shortcut
+  twice, e.g. "(F9) (F9)".
+
 ## [1.0.0] - 2026-10-15
 
 ### Added
