@@ -7,6 +7,24 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- A dark theme in the VCL GUI runner, with **View > Theme** to choose it: **Use Windows Setting**
+  (the default) follows Windows' app mode setting, switching as soon as it changes, but stays light
+  while high contrast is on, and **Light** and **Dark** override it. The choice applies without a
+  restart and is saved in the layout file; `--layout-ignore` and `--layout-reset` cover it as they
+  do the layout. Dark is RAD Studio's Carbon VCL style, so a project of your own that runs its
+  tests in the VCL GUI runner needs Carbon among its custom styles (Project > Options >
+  Application > Appearance), without which Dark shows the light look, and a `WinMain()` that
+  applies the saved theme (see Changed).
+
+### Changed
+
+- A VCL GUI project of your own needs the two new files in `gui\src`,
+  `ASWUnitTestsBCB_GUI_Style.cpp` and `ASWUnitTestsBCB_GUI_Theme.cpp`, and its `WinMain()` must
+  apply the saved theme before creating the main form and pass it to the form's `Start()`, which
+  now takes the theme as well as the options, as `gui\rad370\ASWUnitTestsBCB_GUI.cpp` does.
+
 ## [1.0.0] - 2026-10-15
 
 ### Added

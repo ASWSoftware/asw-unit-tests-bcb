@@ -25,21 +25,20 @@ limitations under the License.
 
 //---------------------------------------------------------------------------
 #include <exception>
-#include <memory>
 #include <string>
 //---------------------------------------------------------------------------
 #include <System.SysUtils.hpp>
-#include <System.Win.Registry.hpp>
 #include <Vcl.Forms.hpp>
-#include <Vcl.Styles.hpp>
-#include <Vcl.Themes.hpp>
 #include <tchar.h>
 #include <windows.h>
 //---------------------------------------------------------------------------
 #include "ASWUnitTestsBCB_CLI.h"
 #include "ASWUnitTestsBCB_Exception.h"
 #include "ASWUnitTestsBCB_GUI_CommandLine.h"
+#include "ASWUnitTestsBCB_GUI_Layout.h"
+#include "ASWUnitTestsBCB_GUI_Style.h"
 #include "ASWUnitTestsBCB_GUI_TextDialog.h"
+#include "ASWUnitTestsBCB_GUI_Theme.h"
 //---------------------------------------------------------------------------
 // Before the form's own header, which declares the form variable USEFORM() declares too, as the IDE writes it.
 USEFORM("..\src\ASWUnitTestsBCB_GUI_MainForm.cpp", FormASWUnitTestsBCBGUIMain);
@@ -49,39 +48,6 @@ USEFORM("..\src\ASWUnitTestsBCB_GUI_MainForm.cpp", FormASWUnitTestsBCBGUIMain);
 using namespace ASWUnitTestsBCB;
 using namespace System;
 using namespace System::Sysutils;
-using namespace System::Win::Registry;
-using namespace Vcl::Themes;
-//---------------------------------------------------------------------------
-
-namespace
-{
-
-// Whether Windows is set to use the dark theme for apps. False when the setting
-// can't be read, as on a Windows version that predates it.
-bool AppsUseDarkMode()
-{
-    try
-    {
-        std::unique_ptr<TRegistry> registry(new TRegistry(KEY_READ));
-        registry->RootKey = HKEY_CURRENT_USER;
-
-        if (registry->OpenKeyReadOnly("Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize") &&
-            registry->ValueExists("AppsUseLightTheme"))
-        {
-            return registry->ReadInteger("AppsUseLightTheme") == 0;
-        }
-    }
-    catch (Exception&)
-    {
-        // Keep the default style
-    }
-
-    return false;
-}
-//---------------------------------------------------------------------------
-
-} // namespace
-
 //---------------------------------------------------------------------------
 int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int)
 {
@@ -94,14 +60,17 @@ int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int)
         Application->MainFormOnTaskBar = true;
         Application->Title = "ASWUnitTestsBCB";
 
-        // Registered by the project (Custom_Styles); before any form exists, so every form is created styled.
-        if (AppsUseDarkMode())
-            TStyleManager::TrySetStyle("Carbon", false);
-
         // Parsed before the main form exists, so --help, --version, and argument errors are shown on their own and the
         // process exits with the same code the console runner would use, without opening the GUI.
         TGUIOptions options;
         TGUICommandLineResult const commandLine = TGUICommandLine::Parse(TGUICommandLine::ProcessArguments(), options);
+
+        // Before any form exists, so each one, the --help text's included, is created in its style rather than
+        // restyled. Carbon, the dark style, is linked in by the project (Custom_Styles). --layout-reset's deletion of
+        // the layout file, which also holds the theme, comes later.
+        EGUITheme const theme = (!options.LayoutIgnore && !options.LayoutReset) ?
+                LoadGUIThemeFromLayoutFile(GUILayoutFilePath()) : EGUITheme::Windows;
+        ApplyGUITheme(theme);
 
         if (commandLine.EarlyExitCode.HasValue())
         {
@@ -110,7 +79,7 @@ int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int)
         }
 
         Application->CreateForm(__classid(TFormASWUnitTestsBCBGUIMain), &FormASWUnitTestsBCBGUIMain);
-        FormASWUnitTestsBCBGUIMain->Start(options);
+        FormASWUnitTestsBCBGUIMain->Start(options, theme);
         Application->Run();
 
         // The form outlives Run(); Application frees it later, during shutdown.

@@ -50,6 +50,7 @@ limitations under the License.
 #include "ASWUnitTestsBCB_GUI_RunObserver.h"
 #include "ASWUnitTestsBCB_GUI_Shuffle.h"
 #include "ASWUnitTestsBCB_GUI_TestList.h"
+#include "ASWUnitTestsBCB_GUI_Theme.h"
 #include "ASWUnitTestsBCB_Handler.h"
 #include "ASWUnitTestsBCB_JUnitReport.h"
 #include "ASWUnitTestsBCB_TestBase.h"
@@ -85,6 +86,9 @@ __published: // IDE-managed Components
     TAction* Act_ShuffleOrder;
     TAction* Act_ShuffleSeed;
     TAction* Act_Stop;
+    TAction* Act_ThemeDark;
+    TAction* Act_ThemeLight;
+    TAction* Act_ThemeWindows;
     TActionList* AL_Main;
     TButton* Btn_CopyDetails;
     TButton* Btn_RunFailed;
@@ -124,6 +128,11 @@ __published: // IDE-managed Components
     TMenuItem* MI_ViewExpandAll;
     TMenuItem* MI_ViewResetLayout;
     TMenuItem* MI_ViewSeparator1;
+    TMenuItem* MI_ViewSeparator2;
+    TMenuItem* MI_ViewTheme;
+    TMenuItem* MI_ViewThemeDark;
+    TMenuItem* MI_ViewThemeLight;
+    TMenuItem* MI_ViewThemeWindows;
     TMainMenu* MM_Main;
     TProgressBar* PB_Progress;
     TPageControl* PC_Results;
@@ -154,6 +163,9 @@ __published: // IDE-managed Components
     void __fastcall Act_ShuffleOrderExecute(TObject* Sender);
     void __fastcall Act_ShuffleSeedExecute(TObject* Sender);
     void __fastcall Act_StopExecute(TObject* Sender);
+    void __fastcall Act_ThemeDarkExecute(TObject* Sender);
+    void __fastcall Act_ThemeLightExecute(TObject* Sender);
+    void __fastcall Act_ThemeWindowsExecute(TObject* Sender);
     void __fastcall Edt_FilterChange(TObject* Sender);
     void __fastcall FormClose(TObject* Sender, TCloseAction& Action);
     void __fastcall FormCloseQuery(TObject* Sender, bool& CanClose);
@@ -180,6 +192,7 @@ private: // User declarations
     ASWUnitTestsBCB::TOptional<std::size_t> m_CurrentTestIndex;
     // The layout from the DFM, at 96 DPI, captured before the saved one is applied, for Reset Layout.
     ASWUnitTestsBCB::TGUILayout m_DefaultLayout;
+    TWndMethod m_FormWindowProc; // The form's own WindowProc, which FormWindowProc() passes messages on to
     // Set when the command line doesn't choose the tests itself (no --run, --filter, or partition options), so the
     // saved test selection is restored at start and saved again at close.
     bool m_KeepSelection;
@@ -207,6 +220,10 @@ private: // User declarations
     // By index into m_TestList; nullptr while hidden. Read through TestNode(), which rebuilds it when the tree's window
     // has been recreated.
     std::vector<TTreeNode*> m_TestNodes;
+    // The View > Theme menu's choice.
+    ASWUnitTestsBCB::EGUITheme m_Theme;
+    // Set when the theme was to change during a run, so ApplyTheme() applies it once the run has ended.
+    bool m_ThemeChangePending;
     // Set when the tree's window is destroyed, which frees every TTreeNode, so m_TestNodes points at freed nodes until
     // RebuildNodeCache() finds the ones the recreated window loaded in their place.
     bool m_TreeNodesStale;
@@ -222,6 +239,9 @@ private:
     // Sets the test tree width and detail pane height that 'layout' has, fitted to the window's current size.
     void ApplyPanelSizes(ASWUnitTestsBCB::TGUILayout const& layout);
     void __fastcall ApplyQueuedLayout();
+    // Sets the style for m_Theme and Windows' current setting, once the current message has been handled; see the
+    // definition.
+    void ApplyTheme();
     void BuildTestTree();
     void CenterOnMonitor(int width, int height);
     void CreateStatusImages();
@@ -229,6 +249,7 @@ private:
     ASWUnitTestsBCB::TGUILayout CurrentLayout();
     // The bodies of the actions, run through RunGuarded().
     void __fastcall DoAbout();
+    void __fastcall DoApplyTheme();
     void __fastcall DoCheckClick();
     void __fastcall DoCloseWindow();
     void __fastcall DoCollapseAll();
@@ -239,6 +260,7 @@ private:
     void __fastcall DoFocusFilter();
     void __fastcall DoRequestCloseAfterRun();
     void __fastcall DoResetLayout();
+    void __fastcall DoRestyle();
     void __fastcall DoRunFailed();
     void __fastcall DoRunOnStart();
     void __fastcall DoRunSelected();
@@ -250,8 +272,13 @@ private:
     void __fastcall DoShuffleOrder();
     void __fastcall DoShuffleSeed();
     void __fastcall DoStop();
+    void __fastcall DoThemeDark();
+    void __fastcall DoThemeLight();
+    void __fastcall DoThemeWindows();
     // Ends a run that an unhandled exception escaped from, described by 'description'.
     void FailRunOnUnhandledException(std::string const& description);
+    // Follows the theme as it changes; see the definition.
+    void __fastcall FormWindowProc(TMessage& message);
     // Restores the layout SaveLayout() saved, if any; see the definition.
     void LoadLayout();
     // Restores the test selection SaveSelection() saved, if any, noting what it restored in the log.
@@ -263,11 +290,14 @@ private:
     void __fastcall ObserverYield();
     // Queued with TThread::ForceQueue(), to run once the current message has been handled.
     void __fastcall QueuedApplyLayout();
+    void __fastcall QueuedApplyTheme();
     void __fastcall QueuedClose();
     void __fastcall QueuedRunOnStart();
     void __fastcall QueuedSyncTreeChecks();
     // Refills m_TestNodes from the tree's test nodes, by the index each one holds in its Data.
     void RebuildNodeCache();
+    // Colors the log's lines again, for the style now active.
+    void RecolorLog();
     void RefreshAllNodeImages();
     // Deletes the saved layout, for --layout-reset, noting the outcome in the log.
     void ResetSavedLayout();
@@ -284,8 +314,12 @@ private:
     // Sets a tree node's status image from m_TestList: a test's own status, or a group's or suite's, from its tests.
     void SetNodeImage(TTreeNode* node);
     void SetRunning(bool running);
+    // Chooses the theme, as the View > Theme menu does: saves it, unless --layout-ignore, and applies it.
+    void SetTheme(ASWUnitTestsBCB::EGUITheme theme);
     // Shows m_Shuffle's state: Run in Shuffled Order's check mark, and the status bar.
     void ShowShuffleState();
+    // Shows m_Theme as the View > Theme menu's checked item.
+    void ShowThemeState();
     void __fastcall SyncTreeChecks();
     // The test's tree node, or nullptr while it's hidden.
     TTreeNode* TestNode(std::size_t testIndex);
@@ -308,8 +342,9 @@ public: // User declarations
     // The process exit code: with --exit, what the console runner would have returned for the --run run; otherwise
     // ExitCode_Success, since the GUI was used interactively.
     int ExitCode() const;
-    // Loads the registered tests and applies 'options' (see WinMain()). Call once, right after creating the form.
-    void Start(ASWUnitTestsBCB::TGUIOptions const& options);
+    // Loads the registered tests and applies 'options' (see WinMain()), and shows 'theme', the choice WinMain()
+    // applied, in the View > Theme menu. Call once, right after creating the form.
+    void Start(ASWUnitTestsBCB::TGUIOptions const& options, ASWUnitTestsBCB::EGUITheme theme);
     // Whether a run was aborted by a timeout or a stack overflow, after which the process must end without its usual
     // cleanup (see WinMain()), as the console runner does: an abandoned test may still be running.
     bool WasRunAborted() const;

@@ -127,6 +127,10 @@
             <DependentOn>..\gui\src\ASWUnitTestsBCB_GUI_TestList.h</DependentOn>
             <BuildOrder>29</BuildOrder>
         </CppCompile>
+        <CppCompile Include="..\gui\src\ASWUnitTestsBCB_GUI_Theme.cpp">
+            <DependentOn>..\gui\src\ASWUnitTestsBCB_GUI_Theme.h</DependentOn>
+            <BuildOrder>37</BuildOrder>
+        </CppCompile>
         <CppCompile Include="..\src\ASWUnitTestsBCB_CLI.cpp">
             <DependentOn>..\src\ASWUnitTestsBCB_CLI.h</DependentOn>
             <BuildOrder>7</BuildOrder>
@@ -213,6 +217,10 @@
         <CppCompile Include="..\tests\Test_ASWUnitTestsBCB_GUI_TestList.cpp">
             <DependentOn>..\tests\Test_ASWUnitTestsBCB_GUI_TestList.h</DependentOn>
             <BuildOrder>35</BuildOrder>
+        </CppCompile>
+        <CppCompile Include="..\tests\Test_ASWUnitTestsBCB_GUI_Theme.cpp">
+            <DependentOn>..\tests\Test_ASWUnitTestsBCB_GUI_Theme.h</DependentOn>
+            <BuildOrder>38</BuildOrder>
         </CppCompile>
         <CppCompile Include="..\tests\Test_ASWUnitTestsBCB_Handler.cpp">
             <DependentOn>..\tests\Test_ASWUnitTestsBCB_Handler.h</DependentOn>
