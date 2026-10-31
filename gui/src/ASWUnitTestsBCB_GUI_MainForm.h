@@ -340,6 +340,8 @@ private:
     void SetDarkTheme(std::string const& name);
     // Sets a tree node's status image from m_TestList: a test's own status, or a group's or suite's, from its tests.
     void SetNodeImage(TTreeNode* node);
+    // Sets the progress bar's position so it's also drawn in the error state; see the definition.
+    void SetProgressPosition(int position);
     void SetRunning(bool running);
     // Chooses the theme, as the View > Theme menu does: saves it, unless --layout-ignore, and applies it.
     void SetTheme(ASWUnitTestsBCB::EGUITheme theme);

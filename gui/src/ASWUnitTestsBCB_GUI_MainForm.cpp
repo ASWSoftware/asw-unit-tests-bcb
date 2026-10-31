@@ -1486,7 +1486,7 @@ void __fastcall TFormASWUnitTestsBCBGUIMain::ObserverTestFinished(TTestCaseRecor
 
     m_CurrentTestIndex = TOptional<std::size_t>();
     ++m_RunFinishedCount;
-    PB_Progress->Position = static_cast<int>(m_RunFinishedCount);
+    SetProgressPosition(static_cast<int>(m_RunFinishedCount));
 
     if (record.Outcome == TTestOutcome::Fail)
         PB_Progress->State = pbsError;
@@ -1719,9 +1719,11 @@ void TFormASWUnitTestsBCBGUIMain::RunTests(ITestFilter const* filter, std::strin
     m_RunStopwatch = TStopwatch::StartNew();
     m_LastRunJUnitTestCases = TOptional<std::vector<TJUnitTestCase> >();
 
-    PB_Progress->Max = static_cast<int>(std::max<std::size_t>(m_RunTotalCount, 1));
-    PB_Progress->Position = 0;
+    // Back to the normal state first, since the error state would lag behind the new position; see
+    // SetProgressPosition().
     PB_Progress->State = pbsNormal;
+    PB_Progress->Max = static_cast<int>(std::max<std::size_t>(m_RunTotalCount, 1));
+    SetProgressPosition(0);
 
     m_Observer.ResetStop();
     m_StatusMessage = "Running...";
@@ -1878,6 +1880,22 @@ void TFormASWUnitTestsBCBGUIMain::SetNodeImage(TTreeNode* node)
     int const image = static_cast<int>(status);
     node->ImageIndex = image;
     node->SelectedIndex = image;
+}
+//---------------------------------------------------------------------------
+/*
+    TFormASWUnitTestsBCBGUIMain::SetProgressPosition
+
+    In the error state (red), a themed progress bar draws each new position only when it takes the next one, so it
+    lags one step behind, and a run with a failure ended short of full (two thirds after three failing tests).
+    Setting the position a second time draws it. Found by experiment on Windows 10 with Common Controls 6; the VCL
+    passes Position straight to the control. Under a VCL style, the style draws the bar, and it doesn't lag.
+*/
+void TFormASWUnitTestsBCBGUIMain::SetProgressPosition(int position)
+{
+    PB_Progress->Position = position;
+
+    if (PB_Progress->State != pbsNormal)
+        PB_Progress->Position = position;
 }
 //---------------------------------------------------------------------------
 void TFormASWUnitTestsBCBGUIMain::SetRunning(bool running)

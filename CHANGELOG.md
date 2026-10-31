@@ -38,6 +38,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - The VCL GUI runner's tooltips for Run Selected and Copy Details showed their keyboard shortcut
   twice, e.g. "(F9) (F9)".
+- The VCL GUI runner's progress bar, in the light theme, lagged one test behind the run once a test
+  had failed and it turned red, so a run with a failure ended with it short of full, e.g. two thirds
+  full after three failing tests. It now shows every finished test.
 
 ## [1.0.0] - 2026-10-15
 
