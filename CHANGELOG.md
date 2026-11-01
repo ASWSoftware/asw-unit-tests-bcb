@@ -33,6 +33,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   load the saved theme and dark theme and apply them before creating the main form, then pass them
   to the form's `Start()`, which now takes them, the dark theme's VCL style and the problems found
   loading it as well as the options, as `gui\rad370\ASWUnitTestsBCB_GUI.cpp` does.
+- A negative or NaN tolerance now fails `CheckNotNear`/`AssertNotNear` as well as
+  `CheckNear`/`AssertNear`, whatever the values, with "Invalid tolerance ...: it must be zero or
+  more". Before, the NotNear methods passed with one unless the values were equal, and the Near
+  methods passed with one when they were. A test that passes a negative tolerance must pass its
+  absolute value instead.
 
 ### Fixed
 

@@ -836,9 +836,10 @@ CheckNear(0.3, 0.35, 0.01, ASWBCB_HERE, "close to 0.3");
 ```
 
 Equal values, infinities included, are near; a NaN is near nothing. There's no default tolerance,
-since a sensible one depends on the values and the computation. The three arguments must be all
-`float` or all `double`: a mix, such as `CheckNear(2.0, aFloat, 0.1)`, or an integer argument is
-ambiguous and doesn't compile.
+since a sensible one depends on the values and the computation. A negative or NaN tolerance fails
+all four, whatever the values, with "Invalid tolerance -0.500000: it must be zero or more". The
+three arguments must be all `float` or all `double`: a mix, such as `CheckNear(2.0, aFloat, 0.1)`,
+or an integer argument is ambiguous and doesn't compile.
 
 ### Comparing Greater Than and Less Than
 

@@ -1705,12 +1705,17 @@ public:
 
 __published:
     void __fastcall Test_AssertNear_Fails();
+    void __fastcall Test_AssertNear_NegativeTolerance_Fails();
     void __fastcall Test_AssertNotNear_Fails();
+    void __fastcall Test_AssertNotNear_NaNTolerance_Fails();
     void __fastcall Test_CheckNear_Fails();
     void __fastcall Test_CheckNear_Float_Fails();
+    void __fastcall Test_CheckNear_Float_NegativeTolerance_Fails();
     void __fastcall Test_CheckNear_NaN_Fails();
+    void __fastcall Test_CheckNear_NaNTolerance_Fails();
     void __fastcall Test_CheckNotNear_Fails();
     void __fastcall Test_CheckNotNear_Float_Fails();
+    void __fastcall Test_CheckNotNear_NegativeTolerance_Fails();
     void __fastcall Test_Passes();
 };
 
@@ -1721,11 +1726,25 @@ void __fastcall TInnerTB_Near::Test_AssertNear_Fails()
     Trace += "AfterAssertNear;";
 }
 
+void __fastcall TInnerTB_Near::Test_AssertNear_NegativeTolerance_Fails()
+{
+    Lines["AssertNear_NegativeTolerance_Fails"] = __LINE__ + 1;
+    AssertNear(1.0, 1.0, -0.5, ASWBCB_HERE, "m");
+    Trace += "AfterAssertNearNegativeTolerance;";
+}
+
 void __fastcall TInnerTB_Near::Test_AssertNotNear_Fails()
 {
     Lines["AssertNotNear_Fails"] = __LINE__ + 1;
     AssertNotNear(1.0, 1.25, 0.5, ASWBCB_HERE, "m");
     Trace += "AfterAssertNotNear;";
+}
+
+void __fastcall TInnerTB_Near::Test_AssertNotNear_NaNTolerance_Fails()
+{
+    Lines["AssertNotNear_NaNTolerance_Fails"] = __LINE__ + 1;
+    AssertNotNear(1.0f, 2.0f, std::numeric_limits<float>::quiet_NaN(), ASWBCB_HERE, "m");
+    Trace += "AfterAssertNotNearNaNTolerance;";
 }
 
 void __fastcall TInnerTB_Near::Test_CheckNear_Fails()
@@ -1741,10 +1760,23 @@ void __fastcall TInnerTB_Near::Test_CheckNear_Float_Fails()
     CheckNear(2.5f, 3.0f, 0.25f, ASWBCB_HERE, "m");
 }
 
+void __fastcall TInnerTB_Near::Test_CheckNear_Float_NegativeTolerance_Fails()
+{
+    Lines["CheckNear_Float_NegativeTolerance_Fails"] = __LINE__ + 1;
+    CheckNear(1.0f, 1.0f, -0.25f, ASWBCB_HERE, "m");
+    Trace += "AfterCheckNearNegativeTolerance;";
+}
+
 void __fastcall TInnerTB_Near::Test_CheckNear_NaN_Fails()
 {
     Lines["CheckNear_NaN_Fails"] = __LINE__ + 1;
     CheckNear(std::numeric_limits<double>::quiet_NaN(), 1.0, 0.5, ASWBCB_HERE, "m");
+}
+
+void __fastcall TInnerTB_Near::Test_CheckNear_NaNTolerance_Fails()
+{
+    Lines["CheckNear_NaNTolerance_Fails"] = __LINE__ + 1;
+    CheckNear(1.0, 1.0, std::numeric_limits<double>::quiet_NaN(), ASWBCB_HERE, "m");
 }
 
 void __fastcall TInnerTB_Near::Test_CheckNotNear_Fails()
@@ -1759,6 +1791,12 @@ void __fastcall TInnerTB_Near::Test_CheckNotNear_Float_Fails()
     CheckNotNear(1.0f, 1.0f, 0.0f, ASWBCB_HERE, "m");
 }
 
+void __fastcall TInnerTB_Near::Test_CheckNotNear_NegativeTolerance_Fails()
+{
+    Lines["CheckNotNear_NegativeTolerance_Fails"] = __LINE__ + 1;
+    CheckNotNear(1.0, 2.0, -1.0, ASWBCB_HERE, "m");
+}
+
 void __fastcall TInnerTB_Near::Test_Passes()
 {
     double const nan = std::numeric_limits<double>::quiet_NaN();
@@ -1768,6 +1806,7 @@ void __fastcall TInnerTB_Near::Test_Passes()
     CheckNear(1.0, 0.95, 0.1, ASWBCB_HERE, "below");
     CheckNear(1.0, 1.5, 0.5, ASWBCB_HERE, "a difference equal to the tolerance");
     CheckNear(1.0, 1.0, 0.0, ASWBCB_HERE, "equal values with no tolerance");
+    CheckNear(1.0, 1.0, -0.0, ASWBCB_HERE, "a negative zero tolerance is zero");
     CheckNear(infinity, infinity, 0.0, ASWBCB_HERE, "equal infinities");
     CheckNear(2.0f, 2.25f, 0.5f, ASWBCB_HERE, "floats");
     CheckNotNear(1.0, 2.0, 0.5, ASWBCB_HERE);
@@ -3037,18 +3076,29 @@ void __fastcall TTest_ASWUnitTestsBCB_TestBase::Test_Near_ChecksAndAsserts()
     char const* const records[][3] = {
         { "AssertNear_Fails", "Values not equal: Test_AssertNear_Fails (",
           "Expected: \"1.000000 (tolerance 0.125000)\" but was \"1.250000 (diff 0.250000)\". m" },
+        { "AssertNear_NegativeTolerance_Fails", "Values not equal: Test_AssertNear_NegativeTolerance_Fails (",
+          "Invalid tolerance -0.500000: it must be zero or more. m" },
         { "AssertNotNear_Fails", "Values are equal: Test_AssertNotNear_Fails (",
           "Value: \"1.250000 (diff 0.250000 <= tolerance 0.500000)\". m" },
+        { "AssertNotNear_NaNTolerance_Fails", "Values are equal: Test_AssertNotNear_NaNTolerance_Fails (",
+          "Invalid tolerance nan: it must be zero or more. m" },
         { "CheckNear_Fails", "Check failed for: \"Test_CheckNear_Fails\" (",
           "Expected \"1.000000 (tolerance 0.125000)\" but was \"1.250000 (diff 0.250000)\". m" },
         { "CheckNear_Float_Fails", "Check failed for: \"Test_CheckNear_Float_Fails\" (",
           "Expected \"2.500000 (tolerance 0.250000)\" but was \"3.000000 (diff 0.500000)\". m" },
+        { "CheckNear_Float_NegativeTolerance_Fails",
+          "Check failed for: \"Test_CheckNear_Float_NegativeTolerance_Fails\" (",
+          "Invalid tolerance -0.250000: it must be zero or more. m" },
         { "CheckNear_NaN_Fails", "Check failed for: \"Test_CheckNear_NaN_Fails\" (",
           "Expected \"nan (tolerance 0.500000)\" but was \"1.000000 (diff nan)\". m" },
+        { "CheckNear_NaNTolerance_Fails", "Check failed for: \"Test_CheckNear_NaNTolerance_Fails\" (",
+          "Invalid tolerance nan: it must be zero or more. m" },
         { "CheckNotNear_Fails", "Check failed for: \"Test_CheckNotNear_Fails\" (",
           "Both values equal: \"1.250000 (diff 0.250000 <= tolerance 0.500000)\". m" },
         { "CheckNotNear_Float_Fails", "Check failed for: \"Test_CheckNotNear_Float_Fails\" (",
           "Both values equal: \"1.000000 (diff 0.000000 <= tolerance 0.000000)\". m" },
+        { "CheckNotNear_NegativeTolerance_Fails", "Check failed for: \"Test_CheckNotNear_NegativeTolerance_Fails\" (",
+          "Invalid tolerance -1.000000: it must be zero or more. m" },
     };
 
     // Act
@@ -3067,7 +3117,8 @@ void __fastcall TTest_ASWUnitTestsBCB_TestBase::Test_Near_ChecksAndAsserts()
             MessageOf(results, testName), ASWBCB_HERE, testName);
     }
 
-    CheckEquals("AfterCheckNear;", group->Trace, ASWBCB_HERE, "a Check goes on, an Assert doesn't");
+    CheckEquals("AfterCheckNear;AfterCheckNearNegativeTolerance;", group->Trace, ASWBCB_HERE,
+        "a Check goes on, an Assert doesn't");
 }
 //---------------------------------------------------------------------------
 void __fastcall TTest_ASWUnitTestsBCB_TestBase::Test_NotEquals_ChecksAndAsserts()
