@@ -38,6 +38,11 @@ limitations under the License.
 #include <string>
 #include <typeinfo>
 #include <vector>
+#if defined(_WIN64)
+#  include <cfenv> // RoundingMode(), SetRoundingMode()
+#else
+#  include <float.h> // _control87(), for RoundingMode() and SetRoundingMode()
+#endif
 //---------------------------------------------------------------------------
 #include <System.Classes.hpp>
 #include <System.Diagnostics.hpp>
@@ -144,12 +149,15 @@ bool volatile g_KeepRecursing = true;
 
 std::string Address(void const* pointer);
 bool Contains(std::string const& text, std::string const& part);
+int DownwardRoundingMode();
 std::string NamesOf(std::vector<ASWUnitTestsBCB::TPublishedTest> const& tests);
 std::string OutcomeOf(ASWUnitTestsBCB::TTestResults const& results, std::string const& testName);
 std::string MessageOf(ASWUnitTestsBCB::TTestResults const& results, std::string const& testName);
 std::string RecordsOf(ASWUnitTestsBCB::TTestResults const& results);
 int Recurse(int depth);
+int RoundingMode();
 void RunIllegalInstruction();
+void SetRoundingMode(int mode);
 bool StartsWith(std::string const& text, std::string const& prefix);
 
 //---------------------------------------------------------------------------
@@ -168,6 +176,20 @@ std::string Address(void const* pointer)
 bool Contains(std::string const& text, std::string const& part)
 {
     return text.find(part) != std::string::npos;
+}
+//---------------------------------------------------------------------------
+/*
+    DownwardRoundingMode
+
+    The rounding mode that rounds toward negative infinity, as RoundingMode() gives it.
+*/
+int DownwardRoundingMode()
+{
+#if defined(_WIN64)
+    return FE_DOWNWARD;
+#else
+    return RC_DOWN;
+#endif
 }
 //---------------------------------------------------------------------------
 /*
@@ -261,6 +283,22 @@ int Recurse(int depth)
 }
 //---------------------------------------------------------------------------
 /*
+    RoundingMode
+
+    This thread's floating-point rounding mode: std::fegetround() on Win64, and on Win32 the x87 control word's
+    rounding bits, since bcc32 has no <cfenv> and bcc32c's runtime declares std::fegetround() and std::fesetround()
+    without defining them.
+*/
+int RoundingMode()
+{
+#if defined(_WIN64)
+    return std::fegetround();
+#else
+    return static_cast<int>(_control87(0, 0) & MCW_RC);
+#endif
+}
+//---------------------------------------------------------------------------
+/*
     RunIllegalInstruction
 
     Executes an illegal instruction (ud2).
@@ -278,6 +316,20 @@ void RunIllegalInstruction()
     }
 
     reinterpret_cast<TCode>(g_IllegalInstruction)();
+}
+//---------------------------------------------------------------------------
+/*
+    SetRoundingMode
+
+    Sets this thread's rounding mode to 'mode', from RoundingMode() or DownwardRoundingMode().
+*/
+void SetRoundingMode(int mode)
+{
+#if defined(_WIN64)
+    std::fesetround(mode);
+#else
+    _control87(static_cast<unsigned int>(mode), MCW_RC);
+#endif
 }
 //---------------------------------------------------------------------------
 bool StartsWith(std::string const& text, std::string const& prefix)
@@ -637,6 +689,30 @@ void __fastcall TInnerTB_Threads::Test_Records()
     TestRanOn = ::GetCurrentThreadId();
     TThread::Synchronize(nullptr, &OnSynchronized);
     TThread::Queue(nullptr, &OnQueued);
+}
+
+
+/////////////////////////////////////////////////////////////////////////////
+// TInnerTB_Rounding: a test that records the rounding mode it runs with
+/////////////////////////////////////////////////////////////////////////////
+class TInnerTB_Rounding : public TTestGroupBase
+{
+public:
+    int RoundingModeInTest; // -1 until it runs
+
+    __fastcall TInnerTB_Rounding()
+        : TTestGroupBase("InnerRounding"),
+          RoundingModeInTest(-1)
+    {
+    }
+
+__published:
+    void __fastcall Test_Records();
+};
+
+void __fastcall TInnerTB_Rounding::Test_Records()
+{
+    RoundingModeInTest = RoundingMode();
 }
 
 // Runs a new TGroup plainly and another with 'testTimeoutSeconds' and 'catchCrashes', and returns in 'plain' and
@@ -3644,6 +3720,54 @@ void __fastcall TTest_ASWUnitTestsBCB_TestBase::Test_Run_Timeout_IgnoresLateFini
     CheckEquals(1u, static_cast<unsigned int>(results.Messages.size()), ASWBCB_HERE, "no Check failure message");
     CheckNotContains(observer.LogText, "Check failed", ASWBCB_HERE);
     CheckNotContains(observer.LogText, "Finished test", ASWBCB_HERE);
+}
+//---------------------------------------------------------------------------
+void __fastcall TTest_ASWUnitTestsBCB_TestBase::Test_Run_Timeout_KeepsTheFloatingPointEnvironment()
+{
+    // Arrange: this thread rounds downward for the runs, and as before afterwards, whatever happens. On Win64 a new
+    // thread starts rounding to nearest, so a test run on one without this thread's environment would too.
+    struct TRoundingModeRestorer
+    {
+        int const Mode;
+
+        TRoundingModeRestorer()
+            : Mode(RoundingMode())
+        {
+        }
+
+        ~TRoundingModeRestorer()
+        {
+            SetRoundingMode(Mode);
+        }
+    };
+
+    TRoundingModeRestorer const restorer;
+    SetRoundingMode(DownwardRoundingMode());
+    AssertEquals(DownwardRoundingMode(), RoundingMode(), ASWBCB_HERE, "this thread now rounds downward");
+
+    // Without a timeout, the test runs on this thread, rounding downward.
+    {
+        TRecordingObserver observer;
+        std::unique_ptr<TInnerTB_Rounding> group(new TInnerTB_Rounding());
+        group->SetRunObserver(&observer);
+
+        group->Run();
+
+        CheckEquals("Records=pass: \n", RecordsOf(group->Results()), ASWBCB_HERE);
+        CheckEquals(DownwardRoundingMode(), group->RoundingModeInTest, ASWBCB_HERE, "without a timeout");
+    }
+
+    // With one, on a worker thread, still rounding downward.
+    {
+        TRecordingObserver observer;
+        std::unique_ptr<TInnerTB_Rounding> group(new TInnerTB_Rounding());
+        group->SetRunObserver(&observer);
+
+        group->Run(nullptr, TOptional<unsigned int>(), 10u);
+
+        CheckEquals("Records=pass: \n", RecordsOf(group->Results()), ASWBCB_HERE);
+        CheckEquals(DownwardRoundingMode(), group->RoundingModeInTest, ASWBCB_HERE, "with a timeout");
+    }
 }
 //---------------------------------------------------------------------------
 void __fastcall TTest_ASWUnitTestsBCB_TestBase::Test_Run_Timeout_RecordsTheSame()

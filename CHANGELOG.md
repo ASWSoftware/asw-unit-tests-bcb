@@ -41,6 +41,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - The VCL GUI runner's progress bar, in the light theme, lagged one test behind the run once a test
   had failed and it turned red, so a run with a failure ended with it short of full, e.g. two thirds
   full after three failing tests. It now shows every finished test.
+- With `--test-timeout-seconds`, in a Win64 (bcc64x) build, a test ran with the default
+  floating-point environment instead of the one the run started with: rounding to nearest, whatever
+  rounding mode was set, e.g. with `std::fesetround()`. Each test now starts with the floating-point
+  environment of the thread that runs the tests, as it does without a timeout. Win32 builds already
+  kept it.
 
 ## [1.0.0] - 2026-10-15
 

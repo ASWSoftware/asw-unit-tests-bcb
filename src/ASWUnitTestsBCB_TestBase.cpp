@@ -36,6 +36,9 @@ limitations under the License.
 #include <stdexcept>
 #include <string>
 #include <vector>
+#if defined(_WIN64)
+#  include <cfenv> // TTestWorkerThread
+#endif
 //---------------------------------------------------------------------------
 #include <System.Classes.hpp>
 #include <System.Diagnostics.hpp>
@@ -77,6 +80,13 @@ struct TPublishedMethod
 // The thread TTestGroupBase::RunWithTimeout() runs a test on: it calls
 // 'work' once. Created suspended, and never freed by itself, so the
 // waiting thread decides whether to free it or abandon it.
+//
+// It starts with the floating-point environment of the thread that creates
+// it, as the test would have there. On Win64 it has to be passed over: a new
+// thread starts with the defaults (rounding to nearest), except for the
+// MXCSR the RTL's own SetMXCSR() set. On Win32 a new thread already starts
+// with the x87 control word _control87() or Set8087CW() set (both update
+// the RTL's Default8087CW).
 /////////////////////////////////////////////////////////////////////////////
 class TTestWorkerThread : public TThread
 {
@@ -84,6 +94,9 @@ private:
     typedef TThread inherited;
 
 private:
+#if defined(_WIN64)
+    std::fenv_t m_Environment; // The creating thread's
+#endif
     TThreadMethod m_Work;
 
 protected:
@@ -126,10 +139,16 @@ __fastcall TTestWorkerThread::TTestWorkerThread(TThreadMethod work)
       m_Work(work)
 {
     FreeOnTerminate = false;
+#if defined(_WIN64)
+    std::fegetenv(&m_Environment);
+#endif
 }
 //---------------------------------------------------------------------------
 void __fastcall TTestWorkerThread::Execute()
 {
+#if defined(_WIN64)
+    std::fesetenv(&m_Environment);
+#endif
     m_Work();
 }
 //---------------------------------------------------------------------------

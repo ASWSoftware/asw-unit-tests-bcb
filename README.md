@@ -507,16 +507,16 @@ merge the JUnit reports of parallel jobs themselves. Combine the partition optio
 preview which tests land in a partition.
 
 `--test-timeout-seconds` guards against a test that hangs (e.g. in an endless loop). Each test then
-runs on a worker thread (a `TThread`) while the thread that started the run waits. A test that
-finishes in time, whether it passes, fails or throws, behaves exactly as without the option, and
-when the run was started from the main thread, the test's `TThread::Synchronize()` and
-`TThread::Queue()` calls still reach the main thread, which runs them while it waits. A test that
-doesn't finish in time is recorded as failed, with a message naming it and the timeout it exceeded,
-its group is torn down, and the run stops there, with exit code `5`. A JUnit report is still
-written, with every test that finished plus the timed-out one. A thread can't be stopped safely, so
-the abandoned test's thread is left running; if it finishes after all, it changes no results. Since
-that thread may still be using its group, the runner then ends the process without destroying
-anything.
+runs on a worker thread (a `TThread`) while the thread that started the run waits. The worker starts
+with that thread's floating-point environment, such as its rounding mode. A test that finishes in
+time, whether it passes, fails or throws, behaves exactly as without the option, and when the run
+was started from the main thread, the test's `TThread::Synchronize()` and `TThread::Queue()` calls
+still reach the main thread, which runs them while it waits. A test that doesn't finish in time is
+recorded as failed, with a message naming it and the timeout it exceeded, its group is torn down,
+and the run stops there, with exit code `5`. A JUnit report is still written, with every test that
+finished plus the timed-out one. A thread can't be stopped safely, so the abandoned test's thread is
+left running; if it finishes after all, it changes no results. Since that thread may still be using
+its group, the runner then ends the process without destroying anything.
 
 `--catch-crashes` guards against the two faults that would otherwise end the whole process: a stack
 overflow and an illegal instruction. A test that causes one is recorded as failed, e.g.
