@@ -201,8 +201,19 @@ Most checks port unchanged. These may need a look:
   an `enum class` also compares with an integer or another enum type, which ASWUnitTests rejects.
 - `CheckNull`, `CheckSame` and `CheckIsType` don't take `std::shared_ptr` or `std::function`; pass a
   raw pointer or a `std::unique_ptr`.
-- A null C string compared with a `std::string` in a substring, prefix or suffix check, which is
-  undefined behavior in ASWUnitTests, is a defined result here.
+- `CheckNear`, `CheckNotNear` and their `Assert` forms have `float` and `double` overloads only, so
+  a call must have a `float` or a `double` argument and not both; the others convert to its type. A
+  call that mixes the two, such as `CheckNear(2.0, aFloat, 0.01, ...)`, or has neither, such as
+  `CheckNear(10, count, 1, ...)`, which ASWUnitTests takes since 1.5.0, is ambiguous here and
+  doesn't compile: convert an argument, e.g.
+  `CheckNear(2.0, static_cast<double>(aFloat), 0.01, ASWBCB_HERE)`.
+- `SetExceptionExpected<T>()` with a class `T` that isn't a `std::exception` doesn't match a
+  `std::exception` subclass derived from it, and `CheckThrows<T>` matches one without checking its
+  `what()`. Expect the `std::exception` subclass itself, or `std::exception`, to check its message.
+- A thrown object that is neither a `std::exception` nor an RTL exception is described as "an object
+  that is neither a std::exception nor an RTL Exception", where ASWUnitTests says "a
+  non-std::exception object" or names its type. Only a test or script that reads failure messages
+  notices.
 
 ## What Has No Equivalent
 
@@ -212,3 +223,9 @@ Most checks port unchanged. These may need a look:
 - `TExceptRTLException`: an RTL exception that ends a run under `--test-timeout-seconds` arrives as
   a `TExceptFatalError` with the same text.
 - CMake, `ASWUnitTests_Sources.cmake`, Linux and the non-RAD Studio compilers.
+- The Win32 GUI runner: use the VCL GUI runner.
+- `TTestHandler::GetAppBitsStr()` and `GetBuildOS()`: check `_WIN64`; the operating system is always
+  Windows.
+- `UTF8ToWide()`, `CommandLineArguments()`, `SystemErrorText()` and `TConsoleUTF8Output`: use
+  `FromUTF8()`, `TCLIParser::SplitCommandLine(::GetCommandLineW())` and the RTL's
+  `SysErrorMessage()`. The console runner sets the console's code page to UTF-8 itself.
