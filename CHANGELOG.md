@@ -7,6 +7,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-31
+
 ### Added
 
 - A dark theme in the VCL GUI runner, with **View > Theme** to choose it: **Use Windows Setting**
@@ -25,6 +27,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   lists the files in `%APPDATA%\ASWUnitTestsBCB\Themes`, shared by every test app, and **Open
   Themes Folder** opens it. A style file's problems, such as a missing file or a style name already
   taken, are reported in the log, with Carbon used in its place.
+- An example parameterized test, `Count_Words`, with labeled rows, in
+  `tests\Test_ASWExample_WordCounter.cpp`.
 
 ### Changed
 
@@ -43,6 +47,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - The VCL GUI runner's tooltips for Run Selected and Copy Details showed their keyboard shortcut
   twice, e.g. "(F9) (F9)".
+- The VCL GUI runner's status bar cut off its first panel's text, such as "Checked: 44 / 284
+  shown", while the filter box hid some tests. It now has room for up to "Checked: 9999 / 9999
+  shown".
 - The VCL GUI runner's progress bar, in the light theme, lagged one test behind the run once a test
   had failed and it turned red, so a run with a failure ended with it short of full, e.g. two thirds
   full after three failing tests. It now shows every finished test.
@@ -194,5 +201,6 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   tests between sessions. After a test times out or a stack overflow ends a run, it runs no more
   tests until restarted.
 
-[Unreleased]: https://github.com/ASWSoftware/asw-unit-tests-bcb/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/ASWSoftware/asw-unit-tests-bcb/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/ASWSoftware/asw-unit-tests-bcb/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/ASWSoftware/asw-unit-tests-bcb/releases/tag/v1.0.0
