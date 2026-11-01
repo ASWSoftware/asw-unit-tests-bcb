@@ -507,16 +507,16 @@ merge the JUnit reports of parallel jobs themselves. Combine the partition optio
 preview which tests land in a partition.
 
 `--test-timeout-seconds` guards against a test that hangs (e.g. in an endless loop). Each test then
-runs on a worker thread (a `TThread`) while the thread that started the run waits. A test that
-finishes in time, whether it passes, fails or throws, behaves exactly as without the option, and
-when the run was started from the main thread, the test's `TThread::Synchronize()` and
-`TThread::Queue()` calls still reach the main thread, which runs them while it waits. A test that
-doesn't finish in time is recorded as failed, with a message naming it and the timeout it exceeded,
-its group is torn down, and the run stops there, with exit code `5`. A JUnit report is still
-written, with every test that finished plus the timed-out one. A thread can't be stopped safely, so
-the abandoned test's thread is left running; if it finishes after all, it changes no results. Since
-that thread may still be using its group, the runner then ends the process without destroying
-anything.
+runs on a worker thread (a `TThread`) while the thread that started the run waits. The worker starts
+with that thread's floating-point environment, such as its rounding mode. A test that finishes in
+time, whether it passes, fails or throws, behaves exactly as without the option, and when the run
+was started from the main thread, the test's `TThread::Synchronize()` and `TThread::Queue()` calls
+still reach the main thread, which runs them while it waits. A test that doesn't finish in time is
+recorded as failed, with a message naming it and the timeout it exceeded, its group is torn down,
+and the run stops there, with exit code `5`. A JUnit report is still written, with every test that
+finished plus the timed-out one. A thread can't be stopped safely, so the abandoned test's thread is
+left running; if it finishes after all, it changes no results. Since that thread may still be using
+its group, the runner then ends the process without destroying anything.
 
 `--catch-crashes` guards against the two faults that would otherwise end the whole process: a stack
 overflow and an illegal instruction. A test that causes one is recorded as failed, e.g.
@@ -836,9 +836,12 @@ CheckNear(0.3, 0.35, 0.01, ASWBCB_HERE, "close to 0.3");
 ```
 
 Equal values, infinities included, are near; a NaN is near nothing. There's no default tolerance,
-since a sensible one depends on the values and the computation. The three arguments must be all
-`float` or all `double`: a mix, such as `CheckNear(2.0, aFloat, 0.1)`, or an integer argument is
-ambiguous and doesn't compile.
+since a sensible one depends on the values and the computation. A negative or NaN tolerance fails
+all four, whatever the values, with "Invalid tolerance -0.500000: it must be zero or more". There
+are overloads for `float` and `double` only, so a call needs a `float` or a `double` argument and
+not both, and the others convert to its type: a call that mixes the two, such as
+`CheckNear(2.0, aFloat, 0.1)`, or has neither, such as `CheckNear(10, count, 1)`, is ambiguous and
+doesn't compile.
 
 ### Comparing Greater Than and Less Than
 

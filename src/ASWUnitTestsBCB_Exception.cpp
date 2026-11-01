@@ -166,6 +166,11 @@ TExceptEndsWith::TExceptEndsWith(std::string const& method, int line, std::strin
 /////////////////////////////////////////////////////////////////////////////
 
 //---------------------------------------------------------------------------
+TExceptEquals::TExceptEquals(std::string const& method, int line, std::string const& detail)
+    : TTestException("Values not equal: " + FormatLocation(method, line) + ": " + detail)
+{
+}
+//---------------------------------------------------------------------------
 TExceptEquals::TExceptEquals(std::string const& method, int line, std::string const& expected,
     std::string const& actual, std::string const& msg, bool ignoreCase)
     : TTestException("Values not equal: " + FormatLocation(method, line) + ": Expected: \"" + expected +
@@ -360,6 +365,11 @@ TExceptNotEndsWith::TExceptNotEndsWith(std::string const& method, int line, std:
 // TExceptNotEquals
 /////////////////////////////////////////////////////////////////////////////
 
+//---------------------------------------------------------------------------
+TExceptNotEquals::TExceptNotEquals(std::string const& method, int line, std::string const& detail)
+    : TTestException("Values are equal: " + FormatLocation(method, line) + ": " + detail)
+{
+}
 //---------------------------------------------------------------------------
 TExceptNotEquals::TExceptNotEquals(std::string const& method, int line, std::string const& value,
     std::string const& msg)

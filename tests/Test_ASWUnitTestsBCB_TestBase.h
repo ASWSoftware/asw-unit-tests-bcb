@@ -81,6 +81,7 @@ __published:
     void __fastcall Test_Run_Timeout_AbandonsHungTest();
     void __fastcall Test_Run_Timeout_FatalErrorsEndTheRun();
     void __fastcall Test_Run_Timeout_IgnoresLateFinish();
+    void __fastcall Test_Run_Timeout_KeepsTheFloatingPointEnvironment();
     void __fastcall Test_Run_Timeout_RecordsTheSame();
     void __fastcall Test_Run_Timeout_RunsOnAWorkerThread();
     void __fastcall Test_TextParts_ChecksAndAsserts();

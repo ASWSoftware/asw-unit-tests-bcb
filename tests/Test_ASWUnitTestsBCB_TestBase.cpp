@@ -38,6 +38,11 @@ limitations under the License.
 #include <string>
 #include <typeinfo>
 #include <vector>
+#if defined(_WIN64)
+#  include <cfenv> // RoundingMode(), SetRoundingMode()
+#else
+#  include <float.h> // _control87(), for RoundingMode() and SetRoundingMode()
+#endif
 //---------------------------------------------------------------------------
 #include <System.Classes.hpp>
 #include <System.Diagnostics.hpp>
@@ -144,12 +149,15 @@ bool volatile g_KeepRecursing = true;
 
 std::string Address(void const* pointer);
 bool Contains(std::string const& text, std::string const& part);
+int DownwardRoundingMode();
 std::string NamesOf(std::vector<ASWUnitTestsBCB::TPublishedTest> const& tests);
 std::string OutcomeOf(ASWUnitTestsBCB::TTestResults const& results, std::string const& testName);
 std::string MessageOf(ASWUnitTestsBCB::TTestResults const& results, std::string const& testName);
 std::string RecordsOf(ASWUnitTestsBCB::TTestResults const& results);
 int Recurse(int depth);
+int RoundingMode();
 void RunIllegalInstruction();
+void SetRoundingMode(int mode);
 bool StartsWith(std::string const& text, std::string const& prefix);
 
 //---------------------------------------------------------------------------
@@ -168,6 +176,20 @@ std::string Address(void const* pointer)
 bool Contains(std::string const& text, std::string const& part)
 {
     return text.find(part) != std::string::npos;
+}
+//---------------------------------------------------------------------------
+/*
+    DownwardRoundingMode
+
+    The rounding mode that rounds toward negative infinity, as RoundingMode() gives it.
+*/
+int DownwardRoundingMode()
+{
+#if defined(_WIN64)
+    return FE_DOWNWARD;
+#else
+    return RC_DOWN;
+#endif
 }
 //---------------------------------------------------------------------------
 /*
@@ -261,6 +283,22 @@ int Recurse(int depth)
 }
 //---------------------------------------------------------------------------
 /*
+    RoundingMode
+
+    This thread's floating-point rounding mode: std::fegetround() on Win64, and on Win32 the x87 control word's
+    rounding bits, since bcc32 has no <cfenv> and bcc32c's runtime declares std::fegetround() and std::fesetround()
+    without defining them.
+*/
+int RoundingMode()
+{
+#if defined(_WIN64)
+    return std::fegetround();
+#else
+    return static_cast<int>(_control87(0, 0) & MCW_RC);
+#endif
+}
+//---------------------------------------------------------------------------
+/*
     RunIllegalInstruction
 
     Executes an illegal instruction (ud2).
@@ -278,6 +316,20 @@ void RunIllegalInstruction()
     }
 
     reinterpret_cast<TCode>(g_IllegalInstruction)();
+}
+//---------------------------------------------------------------------------
+/*
+    SetRoundingMode
+
+    Sets this thread's rounding mode to 'mode', from RoundingMode() or DownwardRoundingMode().
+*/
+void SetRoundingMode(int mode)
+{
+#if defined(_WIN64)
+    std::fesetround(mode);
+#else
+    _control87(static_cast<unsigned int>(mode), MCW_RC);
+#endif
 }
 //---------------------------------------------------------------------------
 bool StartsWith(std::string const& text, std::string const& prefix)
@@ -637,6 +689,30 @@ void __fastcall TInnerTB_Threads::Test_Records()
     TestRanOn = ::GetCurrentThreadId();
     TThread::Synchronize(nullptr, &OnSynchronized);
     TThread::Queue(nullptr, &OnQueued);
+}
+
+
+/////////////////////////////////////////////////////////////////////////////
+// TInnerTB_Rounding: a test that records the rounding mode it runs with
+/////////////////////////////////////////////////////////////////////////////
+class TInnerTB_Rounding : public TTestGroupBase
+{
+public:
+    int RoundingModeInTest; // -1 until it runs
+
+    __fastcall TInnerTB_Rounding()
+        : TTestGroupBase("InnerRounding"),
+          RoundingModeInTest(-1)
+    {
+    }
+
+__published:
+    void __fastcall Test_Records();
+};
+
+void __fastcall TInnerTB_Rounding::Test_Records()
+{
+    RoundingModeInTest = RoundingMode();
 }
 
 // Runs a new TGroup plainly and another with 'testTimeoutSeconds' and 'catchCrashes', and returns in 'plain' and
@@ -1629,12 +1705,17 @@ public:
 
 __published:
     void __fastcall Test_AssertNear_Fails();
+    void __fastcall Test_AssertNear_NegativeTolerance_Fails();
     void __fastcall Test_AssertNotNear_Fails();
+    void __fastcall Test_AssertNotNear_NaNTolerance_Fails();
     void __fastcall Test_CheckNear_Fails();
     void __fastcall Test_CheckNear_Float_Fails();
+    void __fastcall Test_CheckNear_Float_NegativeTolerance_Fails();
     void __fastcall Test_CheckNear_NaN_Fails();
+    void __fastcall Test_CheckNear_NaNTolerance_Fails();
     void __fastcall Test_CheckNotNear_Fails();
     void __fastcall Test_CheckNotNear_Float_Fails();
+    void __fastcall Test_CheckNotNear_NegativeTolerance_Fails();
     void __fastcall Test_Passes();
 };
 
@@ -1645,11 +1726,25 @@ void __fastcall TInnerTB_Near::Test_AssertNear_Fails()
     Trace += "AfterAssertNear;";
 }
 
+void __fastcall TInnerTB_Near::Test_AssertNear_NegativeTolerance_Fails()
+{
+    Lines["AssertNear_NegativeTolerance_Fails"] = __LINE__ + 1;
+    AssertNear(1.0, 1.0, -0.5, ASWBCB_HERE, "m");
+    Trace += "AfterAssertNearNegativeTolerance;";
+}
+
 void __fastcall TInnerTB_Near::Test_AssertNotNear_Fails()
 {
     Lines["AssertNotNear_Fails"] = __LINE__ + 1;
     AssertNotNear(1.0, 1.25, 0.5, ASWBCB_HERE, "m");
     Trace += "AfterAssertNotNear;";
+}
+
+void __fastcall TInnerTB_Near::Test_AssertNotNear_NaNTolerance_Fails()
+{
+    Lines["AssertNotNear_NaNTolerance_Fails"] = __LINE__ + 1;
+    AssertNotNear(1.0f, 2.0f, std::numeric_limits<float>::quiet_NaN(), ASWBCB_HERE, "m");
+    Trace += "AfterAssertNotNearNaNTolerance;";
 }
 
 void __fastcall TInnerTB_Near::Test_CheckNear_Fails()
@@ -1665,10 +1760,23 @@ void __fastcall TInnerTB_Near::Test_CheckNear_Float_Fails()
     CheckNear(2.5f, 3.0f, 0.25f, ASWBCB_HERE, "m");
 }
 
+void __fastcall TInnerTB_Near::Test_CheckNear_Float_NegativeTolerance_Fails()
+{
+    Lines["CheckNear_Float_NegativeTolerance_Fails"] = __LINE__ + 1;
+    CheckNear(1.0f, 1.0f, -0.25f, ASWBCB_HERE, "m");
+    Trace += "AfterCheckNearNegativeTolerance;";
+}
+
 void __fastcall TInnerTB_Near::Test_CheckNear_NaN_Fails()
 {
     Lines["CheckNear_NaN_Fails"] = __LINE__ + 1;
     CheckNear(std::numeric_limits<double>::quiet_NaN(), 1.0, 0.5, ASWBCB_HERE, "m");
+}
+
+void __fastcall TInnerTB_Near::Test_CheckNear_NaNTolerance_Fails()
+{
+    Lines["CheckNear_NaNTolerance_Fails"] = __LINE__ + 1;
+    CheckNear(1.0, 1.0, std::numeric_limits<double>::quiet_NaN(), ASWBCB_HERE, "m");
 }
 
 void __fastcall TInnerTB_Near::Test_CheckNotNear_Fails()
@@ -1683,6 +1791,12 @@ void __fastcall TInnerTB_Near::Test_CheckNotNear_Float_Fails()
     CheckNotNear(1.0f, 1.0f, 0.0f, ASWBCB_HERE, "m");
 }
 
+void __fastcall TInnerTB_Near::Test_CheckNotNear_NegativeTolerance_Fails()
+{
+    Lines["CheckNotNear_NegativeTolerance_Fails"] = __LINE__ + 1;
+    CheckNotNear(1.0, 2.0, -1.0, ASWBCB_HERE, "m");
+}
+
 void __fastcall TInnerTB_Near::Test_Passes()
 {
     double const nan = std::numeric_limits<double>::quiet_NaN();
@@ -1692,6 +1806,7 @@ void __fastcall TInnerTB_Near::Test_Passes()
     CheckNear(1.0, 0.95, 0.1, ASWBCB_HERE, "below");
     CheckNear(1.0, 1.5, 0.5, ASWBCB_HERE, "a difference equal to the tolerance");
     CheckNear(1.0, 1.0, 0.0, ASWBCB_HERE, "equal values with no tolerance");
+    CheckNear(1.0, 1.0, -0.0, ASWBCB_HERE, "a negative zero tolerance is zero");
     CheckNear(infinity, infinity, 0.0, ASWBCB_HERE, "equal infinities");
     CheckNear(2.0f, 2.25f, 0.5f, ASWBCB_HERE, "floats");
     CheckNotNear(1.0, 2.0, 0.5, ASWBCB_HERE);
@@ -2961,18 +3076,29 @@ void __fastcall TTest_ASWUnitTestsBCB_TestBase::Test_Near_ChecksAndAsserts()
     char const* const records[][3] = {
         { "AssertNear_Fails", "Values not equal: Test_AssertNear_Fails (",
           "Expected: \"1.000000 (tolerance 0.125000)\" but was \"1.250000 (diff 0.250000)\". m" },
+        { "AssertNear_NegativeTolerance_Fails", "Values not equal: Test_AssertNear_NegativeTolerance_Fails (",
+          "Invalid tolerance -0.500000: it must be zero or more. m" },
         { "AssertNotNear_Fails", "Values are equal: Test_AssertNotNear_Fails (",
           "Value: \"1.250000 (diff 0.250000 <= tolerance 0.500000)\". m" },
+        { "AssertNotNear_NaNTolerance_Fails", "Values are equal: Test_AssertNotNear_NaNTolerance_Fails (",
+          "Invalid tolerance nan: it must be zero or more. m" },
         { "CheckNear_Fails", "Check failed for: \"Test_CheckNear_Fails\" (",
           "Expected \"1.000000 (tolerance 0.125000)\" but was \"1.250000 (diff 0.250000)\". m" },
         { "CheckNear_Float_Fails", "Check failed for: \"Test_CheckNear_Float_Fails\" (",
           "Expected \"2.500000 (tolerance 0.250000)\" but was \"3.000000 (diff 0.500000)\". m" },
+        { "CheckNear_Float_NegativeTolerance_Fails",
+          "Check failed for: \"Test_CheckNear_Float_NegativeTolerance_Fails\" (",
+          "Invalid tolerance -0.250000: it must be zero or more. m" },
         { "CheckNear_NaN_Fails", "Check failed for: \"Test_CheckNear_NaN_Fails\" (",
           "Expected \"nan (tolerance 0.500000)\" but was \"1.000000 (diff nan)\". m" },
+        { "CheckNear_NaNTolerance_Fails", "Check failed for: \"Test_CheckNear_NaNTolerance_Fails\" (",
+          "Invalid tolerance nan: it must be zero or more. m" },
         { "CheckNotNear_Fails", "Check failed for: \"Test_CheckNotNear_Fails\" (",
           "Both values equal: \"1.250000 (diff 0.250000 <= tolerance 0.500000)\". m" },
         { "CheckNotNear_Float_Fails", "Check failed for: \"Test_CheckNotNear_Float_Fails\" (",
           "Both values equal: \"1.000000 (diff 0.000000 <= tolerance 0.000000)\". m" },
+        { "CheckNotNear_NegativeTolerance_Fails", "Check failed for: \"Test_CheckNotNear_NegativeTolerance_Fails\" (",
+          "Invalid tolerance -1.000000: it must be zero or more. m" },
     };
 
     // Act
@@ -2991,7 +3117,8 @@ void __fastcall TTest_ASWUnitTestsBCB_TestBase::Test_Near_ChecksAndAsserts()
             MessageOf(results, testName), ASWBCB_HERE, testName);
     }
 
-    CheckEquals("AfterCheckNear;", group->Trace, ASWBCB_HERE, "a Check goes on, an Assert doesn't");
+    CheckEquals("AfterCheckNear;AfterCheckNearNegativeTolerance;", group->Trace, ASWBCB_HERE,
+        "a Check goes on, an Assert doesn't");
 }
 //---------------------------------------------------------------------------
 void __fastcall TTest_ASWUnitTestsBCB_TestBase::Test_NotEquals_ChecksAndAsserts()
@@ -3644,6 +3771,54 @@ void __fastcall TTest_ASWUnitTestsBCB_TestBase::Test_Run_Timeout_IgnoresLateFini
     CheckEquals(1u, static_cast<unsigned int>(results.Messages.size()), ASWBCB_HERE, "no Check failure message");
     CheckNotContains(observer.LogText, "Check failed", ASWBCB_HERE);
     CheckNotContains(observer.LogText, "Finished test", ASWBCB_HERE);
+}
+//---------------------------------------------------------------------------
+void __fastcall TTest_ASWUnitTestsBCB_TestBase::Test_Run_Timeout_KeepsTheFloatingPointEnvironment()
+{
+    // Arrange: this thread rounds downward for the runs, and as before afterwards, whatever happens. On Win64 a new
+    // thread starts rounding to nearest, so a test run on one without this thread's environment would too.
+    struct TRoundingModeRestorer
+    {
+        int const Mode;
+
+        TRoundingModeRestorer()
+            : Mode(RoundingMode())
+        {
+        }
+
+        ~TRoundingModeRestorer()
+        {
+            SetRoundingMode(Mode);
+        }
+    };
+
+    TRoundingModeRestorer const restorer;
+    SetRoundingMode(DownwardRoundingMode());
+    AssertEquals(DownwardRoundingMode(), RoundingMode(), ASWBCB_HERE, "this thread now rounds downward");
+
+    // Without a timeout, the test runs on this thread, rounding downward.
+    {
+        TRecordingObserver observer;
+        std::unique_ptr<TInnerTB_Rounding> group(new TInnerTB_Rounding());
+        group->SetRunObserver(&observer);
+
+        group->Run();
+
+        CheckEquals("Records=pass: \n", RecordsOf(group->Results()), ASWBCB_HERE);
+        CheckEquals(DownwardRoundingMode(), group->RoundingModeInTest, ASWBCB_HERE, "without a timeout");
+    }
+
+    // With one, on a worker thread, still rounding downward.
+    {
+        TRecordingObserver observer;
+        std::unique_ptr<TInnerTB_Rounding> group(new TInnerTB_Rounding());
+        group->SetRunObserver(&observer);
+
+        group->Run(nullptr, TOptional<unsigned int>(), 10u);
+
+        CheckEquals("Records=pass: \n", RecordsOf(group->Results()), ASWBCB_HERE);
+        CheckEquals(DownwardRoundingMode(), group->RoundingModeInTest, ASWBCB_HERE, "with a timeout");
+    }
 }
 //---------------------------------------------------------------------------
 void __fastcall TTest_ASWUnitTestsBCB_TestBase::Test_Run_Timeout_RecordsTheSame()

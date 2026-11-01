@@ -33,6 +33,24 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   load the saved theme and dark theme and apply them before creating the main form, then pass them
   to the form's `Start()`, which now takes them, the dark theme's VCL style and the problems found
   loading it as well as the options, as `gui\rad370\ASWUnitTestsBCB_GUI.cpp` does.
+- A negative or NaN tolerance now fails `CheckNotNear`/`AssertNotNear` as well as
+  `CheckNear`/`AssertNear`, whatever the values, with "Invalid tolerance ...: it must be zero or
+  more". Before, the NotNear methods passed with one unless the values were equal, and the Near
+  methods passed with one when they were. A test that passes a negative tolerance must pass its
+  absolute value instead.
+
+### Fixed
+
+- The VCL GUI runner's tooltips for Run Selected and Copy Details showed their keyboard shortcut
+  twice, e.g. "(F9) (F9)".
+- The VCL GUI runner's progress bar, in the light theme, lagged one test behind the run once a test
+  had failed and it turned red, so a run with a failure ended with it short of full, e.g. two thirds
+  full after three failing tests. It now shows every finished test.
+- With `--test-timeout-seconds`, in a Win64 (bcc64x) build, a test ran with the default
+  floating-point environment instead of the one the run started with: rounding to nearest, whatever
+  rounding mode was set, e.g. with `std::fesetround()`. Each test now starts with the floating-point
+  environment of the thread that runs the tests, as it does without a timeout. Win32 builds already
+  kept it.
 
 ## [1.0.0] - 2026-10-15
 

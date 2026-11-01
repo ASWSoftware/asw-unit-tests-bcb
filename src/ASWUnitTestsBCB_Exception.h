@@ -82,6 +82,8 @@ public:
 class TExceptEquals : public TTestException
 {
 public:
+    // "Values not equal: <method> (<line>): <detail>"
+    TExceptEquals(std::string const& method, int line, std::string const& detail);
     TExceptEquals(std::string const& method, int line, std::string const& expected, std::string const& actual,
         std::string const& msg, bool ignoreCase = false);
 };
@@ -93,6 +95,8 @@ public:
 class TExceptNotEquals : public TTestException
 {
 public:
+    // "Values are equal: <method> (<line>): <detail>"
+    TExceptNotEquals(std::string const& method, int line, std::string const& detail);
     TExceptNotEquals(std::string const& method, int line, std::string const& value, std::string const& msg);
     TExceptNotEquals(std::string const& method, int line, std::string const& value, std::string const& otherValue,
         std::string const& msg, bool ignoreCase = false);
