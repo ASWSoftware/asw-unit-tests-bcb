@@ -24,12 +24,29 @@ limitations under the License.
 #ifndef Test_ASWExample_WordCounterH
 #define Test_ASWExample_WordCounterH
 //---------------------------------------------------------------------------
+#include <string>
+//---------------------------------------------------------------------------
+#include <System.hpp>
+//---------------------------------------------------------------------------
 #include "ASWExample_WordCounter.h"
 #include "ASWUnitTestsBCB_TestBase.h"
 //---------------------------------------------------------------------------
 
 namespace ASWUnitTestsBCB
 {
+
+/////////////////////////////////////////////////////////////////////////////
+// TWordCountCase
+//
+// A row of the parameterized test Count_Words: a text and its word count.
+/////////////////////////////////////////////////////////////////////////////
+struct TWordCountCase
+{
+    std::string Name; // Labels the row's test, e.g. "Count_Words[Tabs]"
+    System::UnicodeString Text;
+    int Expected;
+};
+
 
 /////////////////////////////////////////////////////////////////////////////
 // TTest_ASWExample_WordCounter
@@ -41,6 +58,9 @@ private:
 
 private:
     ASWExample::TWordCounter* m_Counter;
+
+private: // Parameterized tests: not published, but registered by the constructor, one test per row
+    void __fastcall Test_Count_Words(TWordCountCase const& row);
 
 protected:
     virtual void SetUp_Test(ITestCase& testCase);

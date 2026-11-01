@@ -106,11 +106,17 @@ public:
     }
 };
 
+//---------------------------------------------------------------------------
+
 void UseDefaultColors();
 
 //---------------------------------------------------------------------------
-// Sets the default colors (green, red, yellow), which --color-pass, --color-fail or --color-skip may have changed
-// for this run.
+/*
+    UseDefaultColors
+
+    Sets the default colors (green, red, yellow), which --color-pass, --color-fail or --color-skip may have changed
+    for this run.
+*/
 void UseDefaultColors()
 {
     ASWUnitTestsBCB::TConsole::SetColor(ASWUnitTestsBCB::TLogKind::Pass, ASWUnitTestsBCB::TConsoleColor::Green);

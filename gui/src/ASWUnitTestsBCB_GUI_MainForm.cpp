@@ -31,6 +31,7 @@ limitations under the License.
 #pragma resource "*.dfm"
 //---------------------------------------------------------------------------
 #include <algorithm>
+#include <cwchar>
 #include <exception>
 #include <iomanip>
 #include <memory>
@@ -49,13 +50,17 @@ limitations under the License.
 #include <Vcl.ComCtrls.hpp>
 #include <Vcl.Forms.hpp>
 #include <Vcl.Graphics.hpp>
+#include <Vcl.Themes.hpp>
 #include <windows.h>
+#include <shellapi.h>
 //---------------------------------------------------------------------------
 #include "ASWUnitTestsBCB_CLI.h"
 #include "ASWUnitTestsBCB_Exception.h"
 #include "ASWUnitTestsBCB_GUI_Selection.h"
 #include "ASWUnitTestsBCB_GUI_ShuffleSeedDialog.h"
+#include "ASWUnitTestsBCB_GUI_Style.h"
 #include "ASWUnitTestsBCB_GUI_TextDialog.h"
+#include "ASWUnitTestsBCB_GUI_Theme.h"
 #include "ASWUnitTestsBCB_JUnitReport.h"
 #include "ASWUnitTestsBCB_Types.h"
 #include "ASWUnitTestsBCB_Utils.h"
@@ -69,13 +74,11 @@ using namespace System::Ioutils;
 using namespace System::Sysutils;
 using namespace System::Types;
 using namespace System::Uitypes;
+using namespace Vcl::Themes;
 //---------------------------------------------------------------------------
 
 namespace
 {
-
-TColor const FailureColor = static_cast<TColor>(RGB(200, 0, 0));
-TColor const SkipColor = static_cast<TColor>(RGB(190, 120, 0));
 
 /////////////////////////////////////////////////////////////////////////////
 // TNodeKind
@@ -94,14 +97,20 @@ enum class TNodeKind
 
 TTreeNode* AddTreeNode(TTreeNodes* nodes, TTreeNode* parent, std::string const& text, void* data);
 std::size_t DataToIndex(void* data);
+TColor FailureColor();
 std::string FirstLine(std::string const& text);
 std::string FormatSeconds(double seconds);
 void* IndexToData(std::size_t index);
+bool IsDarkBackground();
+bool IsThemeSettingChange(WPARAM wParam, LPARAM lParam);
 TColor LogLineColor(std::string const& line);
+TColor LogTextColor();
 std::vector<TRect> MonitorWorkAreas();
 void* NodeData(TNodeKind kind, std::size_t index);
 std::size_t NodeIndex(void* data);
 TNodeKind NodeKind(void* data);
+void OpenFolderInExplorer(UnicodeString const& folderPath);
+TColor SkipColor();
 TTreeNode* SuiteTreeNode(TTreeNodes* nodes, TGUITestList const& testList, std::string const& suitePath,
     std::vector<TTreeNode*>& suiteNodes);
 TNodeCheckState ToNodeCheckState(TGUICheckState state);
@@ -130,6 +139,16 @@ std::size_t DataToIndex(void* data)
     return static_cast<std::size_t>(reinterpret_cast<NativeUInt>(data));
 }
 //---------------------------------------------------------------------------
+/*
+    FailureColor
+
+    The text color of a failure, readable on the list's and the log's background.
+*/
+TColor FailureColor()
+{
+    return IsDarkBackground() ? static_cast<TColor>(RGB(255, 100, 100)) : static_cast<TColor>(RGB(200, 0, 0));
+}
+//---------------------------------------------------------------------------
 std::string FirstLine(std::string const& text)
 {
     return text.substr(0, text.find('\n'));
@@ -148,6 +167,35 @@ void* IndexToData(std::size_t index)
 }
 //---------------------------------------------------------------------------
 /*
+    IsDarkBackground
+
+    Whether the active VCL style's window color is dark, so text colors that read well on white need lighter variants.
+    Also true for a dark high contrast theme, whose window color the unstyled look uses.
+*/
+bool IsDarkBackground()
+{
+    int const rgb = ColorToRGB(TStyleManager::ActiveStyle->GetSystemColor(clWindow));
+    int const luma = (GetRValue(rgb) * 299 + GetGValue(rgb) * 587 + GetBValue(rgb) * 114) / 1000;
+    return luma < 128;
+}
+//---------------------------------------------------------------------------
+/*
+    IsThemeSettingChange
+
+    Whether a WM_SETTINGCHANGE message's parameters are about a setting that Use Windows Setting follows: the app mode,
+    whose change Windows names "ImmersiveColorSet", or high contrast.
+*/
+bool IsThemeSettingChange(WPARAM wParam, LPARAM lParam)
+{
+    if (wParam == SPI_SETHIGHCONTRAST)
+        return true;
+
+    wchar_t const* const area = reinterpret_cast<wchar_t const*>(lParam);
+
+    return (area != nullptr) && (std::wcscmp(area, L"ImmersiveColorSet") == 0);
+}
+//---------------------------------------------------------------------------
+/*
     LogLineColor
 
     The Log tab's color for one line of the framework's log output: its failure lines (a failed test or check, an
@@ -161,13 +209,24 @@ TColor LogLineColor(std::string const& line)
         (line.find("!!FATAL ERROR!!") != std::string::npos) || (line.find("!!ERROR!!") != std::string::npos) ||
         (line.find("!!TIMEOUT!!") != std::string::npos) || (line.find("!!CRASH!!") != std::string::npos))
     {
-        return FailureColor;
+        return FailureColor();
     }
 
     if ((line.find("***Test skipped") != std::string::npos) || (line.find("\" - skipped (") != std::string::npos))
-        return SkipColor;
+        return SkipColor();
 
-    return clWindowText;
+    return LogTextColor();
+}
+//---------------------------------------------------------------------------
+/*
+    LogTextColor
+
+    The Log tab's color for a line that isn't a failure or a skip: the active style's text color. Unstyled, that's
+    clWindowText, which the rich edit shows in its automatic color (see TTextAttributes::SetColor()).
+*/
+TColor LogTextColor()
+{
+    return TStyleManager::ActiveStyle->GetSystemColor(clWindowText);
 }
 //---------------------------------------------------------------------------
 /*
@@ -208,6 +267,30 @@ std::size_t NodeIndex(void* data)
 TNodeKind NodeKind(void* data)
 {
     return static_cast<TNodeKind>(reinterpret_cast<NativeUInt>(data) % 4);
+}
+//---------------------------------------------------------------------------
+/*
+    OpenFolderInExplorer
+
+    Opens the folder in a File Explorer window, or throws an RTL exception if it can't, e.g. because the folder doesn't
+    exist. ShellExecuteW() returns a value above 32 on success.
+*/
+void OpenFolderInExplorer(UnicodeString const& folderPath)
+{
+    HINSTANCE const result = ::ShellExecuteW(nullptr, L"open", folderPath.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+
+    if (reinterpret_cast<INT_PTR>(result) <= 32)
+        throw Exception(UnicodeString("Couldn't open the folder ") + folderPath);
+}
+//---------------------------------------------------------------------------
+/*
+    SkipColor
+
+    The text color of a skip, readable on the list's and the log's background.
+*/
+TColor SkipColor()
+{
+    return IsDarkBackground() ? static_cast<TColor>(RGB(255, 190, 70)) : static_cast<TColor>(RGB(190, 120, 0));
 }
 //---------------------------------------------------------------------------
 /*
@@ -283,6 +366,35 @@ public:
 
 
 /////////////////////////////////////////////////////////////////////////////
+// TStringsUpdateScope
+//
+// Brackets a batch of changes to a TStrings (e.g. a rich edit's Lines) with
+// BeginUpdate()/EndUpdate(), so its control repaints once afterward, and
+// EndUpdate() still runs if an exception leaves the scope.
+/////////////////////////////////////////////////////////////////////////////
+class TStringsUpdateScope
+{
+private:
+    TStrings* const m_Strings;
+
+    TStringsUpdateScope(TStringsUpdateScope const&);            // Not copyable
+    TStringsUpdateScope& operator=(TStringsUpdateScope const&); // Not copyable
+
+public:
+    explicit TStringsUpdateScope(TStrings* strings)
+        : m_Strings(strings)
+    {
+        m_Strings->BeginUpdate();
+    }
+
+    ~TStringsUpdateScope()
+    {
+        m_Strings->EndUpdate();
+    }
+};
+
+
+/////////////////////////////////////////////////////////////////////////////
 // TTreeUpdateScope
 //
 // Brackets a batch of tree node changes with BeginUpdate()/EndUpdate(), so
@@ -326,6 +438,7 @@ __fastcall TFormASWUnitTestsBCBGUIMain::TFormASWUnitTestsBCBGUIMain(TComponent* 
       m_CheckClickNode(nullptr),
       m_CheckClickOldState(ncsNone),
       m_CloseAfterRun(false),
+      m_DarkThemeClickItem(nullptr),
       m_KeepSelection(false),
       m_LastRunExitCode(ExitCode_Success),
       m_RunAborted(false),
@@ -335,8 +448,17 @@ __fastcall TFormASWUnitTestsBCBGUIMain::TFormASWUnitTestsBCBGUIMain(TComponent* 
       m_RunTotalCount(0),
       m_StatusMessage("Ready."),
       m_SyncingChecks(false),
+      m_Theme(EGUITheme::Windows),
+      m_ThemeChangePending(false),
       m_TreeNodesStale(false)
 {
+    m_FormWindowProc = WindowProc;
+    WindowProc = FormWindowProc;
+
+    // A VCL style's rich edit hook gives every color set in the log's text the style's text color instead, so failures
+    // and skips would lose theirs. Without seFont it leaves them, and LogLineColor() chooses colors that suit the style.
+    RE_Log->StyleElements = RE_Log->StyleElements >> seFont;
+
     m_TreeViewWindowProc = TV_Tests->WindowProc;
     TV_Tests->WindowProc = TV_TestsWindowProc;
 }
@@ -347,10 +469,11 @@ __fastcall TFormASWUnitTestsBCBGUIMain::TFormASWUnitTestsBCBGUIMain(TComponent* 
     This form's own members (m_TestList, m_TestNodes, and so on) are destroyed before the VCL base class destroys its
     controls, and destroying a control can fire its events. So every event that reads those members is detached
     first, along with anything still queued for this form, so none can run against members that no longer exist. The
-    tree's own WindowProc is restored for the same reason.
+    form's and the tree's own WindowProc are restored for the same reason.
 */
 __fastcall TFormASWUnitTestsBCBGUIMain::~TFormASWUnitTestsBCBGUIMain()
 {
+    WindowProc = m_FormWindowProc;
     TV_Tests->WindowProc = m_TreeViewWindowProc;
 
     Edt_Filter->OnChange = nullptr;
@@ -403,6 +526,11 @@ void __fastcall TFormASWUnitTestsBCBGUIMain::Act_FocusFilterExecute(TObject* /*S
     RunGuarded("Filter", &this->DoFocusFilter);
 }
 //---------------------------------------------------------------------------
+void __fastcall TFormASWUnitTestsBCBGUIMain::Act_OpenThemesFolderExecute(TObject* /*Sender*/)
+{
+    RunGuarded("Theme > Dark Theme > Open Themes Folder", &this->DoOpenThemesFolder);
+}
+//---------------------------------------------------------------------------
 void __fastcall TFormASWUnitTestsBCBGUIMain::Act_ResetLayoutExecute(TObject* /*Sender*/)
 {
     RunGuarded("Reset Layout", &this->DoResetLayout);
@@ -446,6 +574,21 @@ void __fastcall TFormASWUnitTestsBCBGUIMain::Act_ShuffleSeedExecute(TObject* /*S
 void __fastcall TFormASWUnitTestsBCBGUIMain::Act_StopExecute(TObject* /*Sender*/)
 {
     RunGuarded("Stop", &this->DoStop);
+}
+//---------------------------------------------------------------------------
+void __fastcall TFormASWUnitTestsBCBGUIMain::Act_ThemeDarkExecute(TObject* /*Sender*/)
+{
+    RunGuarded("Theme > Dark", &this->DoThemeDark);
+}
+//---------------------------------------------------------------------------
+void __fastcall TFormASWUnitTestsBCBGUIMain::Act_ThemeLightExecute(TObject* /*Sender*/)
+{
+    RunGuarded("Theme > Light", &this->DoThemeLight);
+}
+//---------------------------------------------------------------------------
+void __fastcall TFormASWUnitTestsBCBGUIMain::Act_ThemeWindowsExecute(TObject* /*Sender*/)
+{
+    RunGuarded("Theme > Use Windows Setting", &this->DoThemeWindows);
 }
 //---------------------------------------------------------------------------
 void TFormASWUnitTestsBCBGUIMain::AddFailureItem(std::size_t testIndex)
@@ -538,6 +681,20 @@ void TFormASWUnitTestsBCBGUIMain::ApplyPanelSizes(TGUILayout const& layout)
 void __fastcall TFormASWUnitTestsBCBGUIMain::ApplyQueuedLayout()
 {
     ApplyPanelSizes(m_QueuedLayout);
+}
+//---------------------------------------------------------------------------
+/*
+    TFormASWUnitTestsBCBGUIMain::ApplyTheme
+
+    Queued rather than at once: under a VCL style, a menu item's click comes from the form's style hook, which a style
+    change frees, and which uses itself again once the click returns (an access violation in
+    TFormStyleHook::TMainMenuBarStyleHook::Invalidate() in ASWUnitTests' VCL GUI). Not during a run, since restyling
+    recreates the windows the run is updating (see DoApplyTheme()). The window is restyled once it handles the message
+    the style change posts; see FormWindowProc().
+*/
+void TFormASWUnitTestsBCBGUIMain::ApplyTheme()
+{
+    TThread::ForceQueue(nullptr, &this->QueuedApplyTheme);
 }
 //---------------------------------------------------------------------------
 /*
@@ -686,6 +843,13 @@ TGUILayout TFormASWUnitTestsBCBGUIMain::CurrentLayout()
     return layout;
 }
 //---------------------------------------------------------------------------
+void __fastcall TFormASWUnitTestsBCBGUIMain::DarkThemeItemClick(TObject* Sender)
+{
+    m_DarkThemeClickItem = dynamic_cast<TMenuItem*>(Sender);
+    RunGuarded("Theme > Dark Theme", &this->DoDarkThemeItemClick);
+    m_DarkThemeClickItem = nullptr;
+}
+//---------------------------------------------------------------------------
 void __fastcall TFormASWUnitTestsBCBGUIMain::DoAbout()
 {
     ShowTextDialog(UnicodeString("About ") + Application->Title,
@@ -703,6 +867,24 @@ void __fastcall TFormASWUnitTestsBCBGUIMain::DoAbout()
         "\n"
         "Copyright 2026 ASW Software\n"
         "Licensed under the Apache License, Version 2.0.\n");
+}
+//---------------------------------------------------------------------------
+/*
+    TFormASWUnitTestsBCBGUIMain::DoApplyTheme
+
+    A change that comes during a run, from Windows' setting (the Theme commands are disabled then), waits for the run to
+    end; SetRunning() applies it.
+*/
+void __fastcall TFormASWUnitTestsBCBGUIMain::DoApplyTheme()
+{
+    if (m_Running)
+    {
+        m_ThemeChangePending = true;
+        return;
+    }
+
+    m_ThemeChangePending = false;
+    ApplyGUITheme(m_Theme, m_DarkStyle);
 }
 //---------------------------------------------------------------------------
 /*
@@ -771,6 +953,25 @@ void __fastcall TFormASWUnitTestsBCBGUIMain::DoCopyDetails()
     UpdateStatusBar();
 }
 //---------------------------------------------------------------------------
+/*
+    TFormASWUnitTestsBCBGUIMain::DoDarkThemeItemClick
+
+    The body of DarkThemeItemClick(), for m_DarkThemeClickItem. Not during a run, while the Theme commands are disabled
+    (see SetRunning()).
+*/
+void __fastcall TFormASWUnitTestsBCBGUIMain::DoDarkThemeItemClick()
+{
+    TMenuItem const* const item = m_DarkThemeClickItem;
+
+    if ((item == nullptr) || m_Running || (item->Tag < 0) ||
+        (static_cast<std::size_t>(item->Tag) >= m_DarkThemeNames.size()))
+    {
+        return;
+    }
+
+    SetDarkTheme(m_DarkThemeNames[static_cast<std::size_t>(item->Tag)]);
+}
+//---------------------------------------------------------------------------
 void __fastcall TFormASWUnitTestsBCBGUIMain::DoExpandAll()
 {
     {
@@ -832,6 +1033,18 @@ void __fastcall TFormASWUnitTestsBCBGUIMain::DoFocusFilter()
 }
 //---------------------------------------------------------------------------
 /*
+    TFormASWUnitTestsBCBGUIMain::DoOpenThemesFolder
+
+    Creates the folder first, so there's somewhere to put the first style file.
+*/
+void __fastcall TFormASWUnitTestsBCBGUIMain::DoOpenThemesFolder()
+{
+    UnicodeString const folder = GUIThemesFolderPath();
+    ForceDirectories(folder);
+    OpenFolderInExplorer(folder);
+}
+//---------------------------------------------------------------------------
+/*
     TFormASWUnitTestsBCBGUIMain::DoRequestCloseAfterRun
 
     A run can't be interrupted partway through a test, so closing during one asks it to stop after the current test,
@@ -858,6 +1071,21 @@ void __fastcall TFormASWUnitTestsBCBGUIMain::DoResetLayout()
     }
 
     ApplyPanelSizes(m_DefaultLayout);
+}
+//---------------------------------------------------------------------------
+/*
+    TFormASWUnitTestsBCBGUIMain::DoRestyle
+
+    After the form has recreated its windows in a new style (see FormWindowProc()). The log keeps its text and the tree
+    its nodes, but the log's lines keep the colors chosen for the old style, and the tree's check boxes and status
+    images are set again.
+*/
+void __fastcall TFormASWUnitTestsBCBGUIMain::DoRestyle()
+{
+    RecolorLog();
+    SyncTreeChecks();
+    RefreshAllNodeImages();
+    LV_Failures->Invalidate();
 }
 //---------------------------------------------------------------------------
 void __fastcall TFormASWUnitTestsBCBGUIMain::DoRunFailed()
@@ -967,6 +1195,21 @@ void __fastcall TFormASWUnitTestsBCBGUIMain::DoStop()
     UpdateStatusBar();
 }
 //---------------------------------------------------------------------------
+void __fastcall TFormASWUnitTestsBCBGUIMain::DoThemeDark()
+{
+    SetTheme(EGUITheme::Dark);
+}
+//---------------------------------------------------------------------------
+void __fastcall TFormASWUnitTestsBCBGUIMain::DoThemeLight()
+{
+    SetTheme(EGUITheme::Light);
+}
+//---------------------------------------------------------------------------
+void __fastcall TFormASWUnitTestsBCBGUIMain::DoThemeWindows()
+{
+    SetTheme(EGUITheme::Windows);
+}
+//---------------------------------------------------------------------------
 void __fastcall TFormASWUnitTestsBCBGUIMain::Edt_FilterChange(TObject* /*Sender*/)
 {
     RunGuarded("the filter box", &this->ApplyFilterBox);
@@ -1007,6 +1250,69 @@ void TFormASWUnitTestsBCBGUIMain::FailRunOnUnhandledException(std::string const&
     UpdateDetail();
 }
 //---------------------------------------------------------------------------
+/*
+    TFormASWUnitTestsBCBGUIMain::FillDarkThemeMenu
+
+    Called from Start(), and again as the submenu opens, so its check mark follows the choice, and a file added or
+    removed since shows at once. The built-in themes first (see BuiltInGUIDarkThemeNames()), Carbon at the top, then a
+    line and the VCL style files in GUIThemesFolderPath() (see GUIThemeNames()), above the line and Open Themes Folder
+    the form has; the chosen one is checked. A chosen theme that's neither, e.g. one whose file was removed, is listed
+    anyway, so choosing it again reports why it isn't used. The menu gives each item an accelerator of its own (its
+    AutoHotkeys), other than Open Themes Folder's O.
+
+    The new items are added before the old ones are deleted: deleting a submenu's last item turns its parent into a
+    plain item, which, as the submenu opens, keeps it from opening. (Open Themes Folder now keeps it from being the
+    last, but the order stays right.)
+*/
+void __fastcall TFormASWUnitTestsBCBGUIMain::FillDarkThemeMenu()
+{
+    std::vector<TMenuItem*> const oldItems = m_DarkThemeItems;
+    m_DarkThemeItems.clear();
+
+    std::vector<std::string> names = BuiltInGUIDarkThemeNames();
+    std::size_t const builtInCount = names.size();
+    std::vector<std::string> const files = GUIThemeNames(FileNamesInFolder(GUIThemesFolderPath()), ".vsf", names);
+    names.insert(names.end(), files.begin(), files.end());
+
+    // Windows' file names ignore case, so a name saved in another case is still that file's.
+    std::string chosen = FindGUIBuiltInDarkTheme(names, m_DarkTheme);
+
+    if (chosen.empty())
+    {
+        chosen = m_DarkTheme;
+        names.push_back(chosen);
+    }
+
+    int position = 0;
+
+    for (std::size_t i = 0; i < names.size(); ++i)
+    {
+        // A line between the built-in themes and the files.
+        if (i == builtInCount)
+        {
+            TMenuItem* const line = new TMenuItem(this);
+            m_DarkThemeItems.push_back(line);
+            line->Caption = "-";
+            MI_ViewDarkTheme->Insert(position++, line);
+        }
+
+        TMenuItem* const item = new TMenuItem(this);
+        m_DarkThemeItems.push_back(item);
+
+        item->Caption = FromUTF8(GUIMenuItemText(names[i]));
+        item->Checked = (names[i] == chosen);
+        item->OnClick = DarkThemeItemClick;
+        item->RadioItem = true;
+        item->Tag = static_cast<NativeInt>(i);
+        MI_ViewDarkTheme->Insert(position++, item);
+    }
+
+    m_DarkThemeNames = names;
+
+    for (std::vector<TMenuItem*>::const_iterator it = oldItems.begin(); it != oldItems.end(); ++it)
+        delete *it;
+}
+//---------------------------------------------------------------------------
 void __fastcall TFormASWUnitTestsBCBGUIMain::FormClose(TObject* /*Sender*/, TCloseAction& /*Action*/)
 {
     RunGuarded("closing the window", &this->DoSaveOnClose);
@@ -1019,6 +1325,29 @@ void __fastcall TFormASWUnitTestsBCBGUIMain::FormCloseQuery(TObject* /*Sender*/,
 
     CanClose = false;
     RunGuarded("closing the window", &this->DoRequestCloseAfterRun);
+}
+//---------------------------------------------------------------------------
+/*
+    TFormASWUnitTestsBCBGUIMain::FormWindowProc
+
+    Follows the theme as it changes:
+    - TStyleManager posts CM_CUSTOMSTYLECHANGED to each visible form when the style changes, and the form handles it by
+      recreating its windows in the new style, after which DoRestyle() updates what that doesn't. VCL changes the
+      message to CM_STYLECHANGED as it handles it, so it's noted first.
+    - With Use Windows Setting, a WM_SETTINGCHANGE about the app mode or high contrast applies the theme again.
+*/
+void __fastcall TFormASWUnitTestsBCBGUIMain::FormWindowProc(TMessage& message)
+{
+    bool const styleChanged = (message.Msg == CM_CUSTOMSTYLECHANGED);
+    bool const settingChanged = (message.Msg == WM_SETTINGCHANGE) &&
+        IsThemeSettingChange(message.WParam, message.LParam);
+
+    m_FormWindowProc(message);
+
+    if (styleChanged)
+        RunGuarded("changing the theme", &this->DoRestyle);
+    else if (settingChanged && (m_Theme == EGUITheme::Windows))
+        ApplyTheme();
 }
 
 //---------------------------------------------------------------------------
@@ -1038,7 +1367,7 @@ void TFormASWUnitTestsBCBGUIMain::LoadLayout()
         if (!FileExists(path))
             return;
 
-        std::unique_ptr<TMemIniFile> const ini(new TMemIniFile(path));
+        std::unique_ptr<TMemIniFile> const ini(NewGUILayoutFile(path));
         layout = LoadGUILayout(*ini);
     }
     catch (...)
@@ -1103,7 +1432,7 @@ void TFormASWUnitTestsBCBGUIMain::LoadSelection()
 }
 //---------------------------------------------------------------------------
 void __fastcall TFormASWUnitTestsBCBGUIMain::LV_FailuresCustomDrawItem(TCustomListView* Sender, TListItem* Item,
-    TCustomDrawState /*State*/, bool& /*DefaultDraw*/)
+    TCustomDrawState State, bool& /*DefaultDraw*/)
 {
     // Not RunGuarded(): this runs while painting, where showing an error would only cause more painting. An item it
     // can't match to a test is simply drawn in the default color.
@@ -1113,12 +1442,27 @@ void __fastcall TFormASWUnitTestsBCBGUIMain::LV_FailuresCustomDrawItem(TCustomLi
         return;
 
     bool const failed = (m_TestList.Status(index) == TGUITestStatus::Failed);
-    Sender->Canvas->Font->Color = failed ? FailureColor : SkipColor;
+    Sender->Canvas->Font->Color = failed ? FailureColor() : SkipColor();
+
+    // The styled list view would otherwise paint an item's background in the canvas's default (light) color unless the
+    // item is selected or hot.
+    if (!State.Contains(cdsSelected) && !State.Contains(cdsHot))
+        Sender->Canvas->Brush->Color = TStyleManager::ActiveStyle->GetSystemColor(clWindow);
 }
 //---------------------------------------------------------------------------
 void __fastcall TFormASWUnitTestsBCBGUIMain::LV_FailuresDblClick(TObject* /*Sender*/)
 {
     RunGuarded("the Failures & Skips list", &this->DoSelectFailure);
+}
+//---------------------------------------------------------------------------
+/*
+    TFormASWUnitTestsBCBGUIMain::MI_ViewDarkThemeClick
+
+    The VCL calls a parent item's OnClick as its submenu opens.
+*/
+void __fastcall TFormASWUnitTestsBCBGUIMain::MI_ViewDarkThemeClick(TObject* /*Sender*/)
+{
+    RunGuarded("the Dark Theme menu", &this->FillDarkThemeMenu);
 }
 //---------------------------------------------------------------------------
 void __fastcall TFormASWUnitTestsBCBGUIMain::ObserverLogText(std::string const& text)
@@ -1142,7 +1486,7 @@ void __fastcall TFormASWUnitTestsBCBGUIMain::ObserverTestFinished(TTestCaseRecor
 
     m_CurrentTestIndex = TOptional<std::size_t>();
     ++m_RunFinishedCount;
-    PB_Progress->Position = static_cast<int>(m_RunFinishedCount);
+    SetProgressPosition(static_cast<int>(m_RunFinishedCount));
 
     if (record.Outcome == TTestOutcome::Fail)
         PB_Progress->State = pbsError;
@@ -1176,6 +1520,11 @@ void __fastcall TFormASWUnitTestsBCBGUIMain::ObserverYield()
 void __fastcall TFormASWUnitTestsBCBGUIMain::QueuedApplyLayout()
 {
     RunGuarded("restoring the layout", &this->ApplyQueuedLayout);
+}
+//---------------------------------------------------------------------------
+void __fastcall TFormASWUnitTestsBCBGUIMain::QueuedApplyTheme()
+{
+    RunGuarded("changing the theme", &this->DoApplyTheme);
 }
 //---------------------------------------------------------------------------
 void __fastcall TFormASWUnitTestsBCBGUIMain::QueuedClose()
@@ -1214,6 +1563,43 @@ void TFormASWUnitTestsBCBGUIMain::RebuildNodeCache()
     }
 
     m_TreeNodesStale = false;
+}
+//---------------------------------------------------------------------------
+/*
+    TFormASWUnitTestsBCBGUIMain::RecolorLog
+
+    AppendLog() colored each line for the style active then. Every line is given the text color first, in one step, then
+    each failure and skip line its own color. Lines are found by their index, which counts a line break as one
+    character, as SelStart does.
+*/
+void TFormASWUnitTestsBCBGUIMain::RecolorLog()
+{
+    int const selStart = RE_Log->SelStart;
+    int const selLength = RE_Log->SelLength;
+    TColor const textColor = LogTextColor();
+
+    TStringsUpdateScope const updating(RE_Log->Lines);
+
+    RE_Log->SelectAll();
+    RE_Log->SelAttributes->Color = textColor;
+
+    int const lineCount = RE_Log->Lines->Count;
+
+    for (int i = 0; i < lineCount; ++i)
+    {
+        UnicodeString const text = RE_Log->Lines->Strings[i];
+        TColor const color = LogLineColor(ToUTF8(text));
+
+        if (color == textColor)
+            continue;
+
+        RE_Log->SelStart = static_cast<int>(::SendMessage(RE_Log->Handle, EM_LINEINDEX, static_cast<WPARAM>(i), 0));
+        RE_Log->SelLength = text.Length();
+        RE_Log->SelAttributes->Color = color;
+    }
+
+    RE_Log->SelStart = selStart;
+    RE_Log->SelLength = selLength;
 }
 //---------------------------------------------------------------------------
 void TFormASWUnitTestsBCBGUIMain::RefreshAllNodeImages()
@@ -1333,9 +1719,11 @@ void TFormASWUnitTestsBCBGUIMain::RunTests(ITestFilter const* filter, std::strin
     m_RunStopwatch = TStopwatch::StartNew();
     m_LastRunJUnitTestCases = TOptional<std::vector<TJUnitTestCase> >();
 
-    PB_Progress->Max = static_cast<int>(std::max<std::size_t>(m_RunTotalCount, 1));
-    PB_Progress->Position = 0;
+    // Back to the normal state first, since the error state would lag behind the new position; see
+    // SetProgressPosition().
     PB_Progress->State = pbsNormal;
+    PB_Progress->Max = static_cast<int>(std::max<std::size_t>(m_RunTotalCount, 1));
+    SetProgressPosition(0);
 
     m_Observer.ResetStop();
     m_StatusMessage = "Running...";
@@ -1414,7 +1802,7 @@ void TFormASWUnitTestsBCBGUIMain::SaveLayout()
         UnicodeString const path = GUILayoutFilePath();
         ForceDirectories(ExtractFileDir(path));
 
-        std::unique_ptr<TMemIniFile> const ini(new TMemIniFile(path));
+        std::unique_ptr<TMemIniFile> const ini(NewGUILayoutFile(path));
         SaveGUILayout(*ini, CurrentLayout());
         ini->UpdateFile();
     }
@@ -1437,6 +1825,35 @@ void TFormASWUnitTestsBCBGUIMain::SaveSelection()
     {
         // Not saving it (e.g. a read-only profile) only means the next start checks every test.
     }
+}
+//---------------------------------------------------------------------------
+/*
+    TFormASWUnitTestsBCBGUIMain::SetDarkTheme
+
+    Applied at once while the theme is dark; while it's light, its file is still loaded, so its problems show in the
+    log, and the status bar says it shows once the theme is dark. A VCL style file already loaded isn't read again (see
+    LoadGUIDarkStyle()). Saved at once, as SetTheme() saves the theme.
+*/
+void TFormASWUnitTestsBCBGUIMain::SetDarkTheme(std::string const& name)
+{
+    m_DarkTheme = name;
+
+    if (!m_Options.LayoutIgnore)
+        SaveGUIDarkThemeToLayoutFile(GUILayoutFilePath(), name);
+
+    std::vector<std::string> problems;
+    m_DarkStyle = LoadGUIDarkStyle(GUIThemesFolderPath(), name, problems);
+    ApplyTheme();
+
+    if (GUIThemeIsDark(m_Theme, WindowsAppsUseDarkTheme(), WindowsHighContrast()))
+        m_StatusMessage = "Dark theme: " + name + ".";
+    else
+        m_StatusMessage = "Dark theme: " + name + ", shown while the theme is dark.";
+
+    for (std::vector<std::string>::const_iterator it = problems.begin(); it != problems.end(); ++it)
+        AppendLog(*it + "\n");
+
+    UpdateStatusBar();
 }
 //---------------------------------------------------------------------------
 void TFormASWUnitTestsBCBGUIMain::SetNodeImage(TTreeNode* node)
@@ -1465,6 +1882,22 @@ void TFormASWUnitTestsBCBGUIMain::SetNodeImage(TTreeNode* node)
     node->SelectedIndex = image;
 }
 //---------------------------------------------------------------------------
+/*
+    TFormASWUnitTestsBCBGUIMain::SetProgressPosition
+
+    In the error state (red), a themed progress bar draws each new position only when it takes the next one, so it
+    lags one step behind, and a run with a failure ended short of full (two thirds after three failing tests).
+    Setting the position a second time draws it. Found by experiment on Windows 10 with Common Controls 6; the VCL
+    passes Position straight to the control. Under a VCL style, the style draws the bar, and it doesn't lag.
+*/
+void TFormASWUnitTestsBCBGUIMain::SetProgressPosition(int position)
+{
+    PB_Progress->Position = position;
+
+    if (PB_Progress->State != pbsNormal)
+        PB_Progress->Position = position;
+}
+//---------------------------------------------------------------------------
 void TFormASWUnitTestsBCBGUIMain::SetRunning(bool running)
 {
     m_Running = running;
@@ -1489,17 +1922,49 @@ void TFormASWUnitTestsBCBGUIMain::SetRunning(bool running)
     Act_ShuffleOrder->Enabled = !running;
     Act_ShuffleSeed->Enabled = !running;
 
-    // Rebuilding the tree mid-run would discard the nodes the run is updating.
+    // Rebuilding the tree mid-run would discard the nodes the run is updating, and so would restyling the window.
     Act_FocusFilter->Enabled = !running;
     Edt_Filter->Enabled = !running;
+    Act_ThemeDark->Enabled = !running;
+    Act_ThemeLight->Enabled = !running;
+    Act_ThemeWindows->Enabled = !running;
+    MI_ViewDarkTheme->Enabled = !running;
 
     UpdateStatusBar();
+
+    // Windows' setting changed during the run; see DoApplyTheme().
+    if (!running && m_ThemeChangePending)
+        ApplyTheme();
+}
+//---------------------------------------------------------------------------
+/*
+    TFormASWUnitTestsBCBGUIMain::SetTheme
+
+    Saved at once, rather than with the layout as the window closes, so the choice is kept even if the window doesn't
+    get to close normally.
+*/
+void TFormASWUnitTestsBCBGUIMain::SetTheme(EGUITheme theme)
+{
+    m_Theme = theme;
+    ShowThemeState();
+
+    if (!m_Options.LayoutIgnore)
+        SaveGUIThemeToLayoutFile(GUILayoutFilePath(), theme);
+
+    ApplyTheme();
 }
 //---------------------------------------------------------------------------
 void TFormASWUnitTestsBCBGUIMain::ShowShuffleState()
 {
     Act_ShuffleOrder->Checked = m_Shuffle.Enabled();
     UpdateStatusBar();
+}
+//---------------------------------------------------------------------------
+void TFormASWUnitTestsBCBGUIMain::ShowThemeState()
+{
+    Act_ThemeDark->Checked = (m_Theme == EGUITheme::Dark);
+    Act_ThemeLight->Checked = (m_Theme == EGUITheme::Light);
+    Act_ThemeWindows->Checked = (m_Theme == EGUITheme::Windows);
 }
 //---------------------------------------------------------------------------
 /*
@@ -1509,9 +1974,15 @@ void TFormASWUnitTestsBCBGUIMain::ShowShuffleState()
     the partition options to which tests start out checked, --filter to the filter box, and --shuffle and
     --shuffle-seed to the Options menu. Also restores the window layout saved when it last closed.
 */
-void TFormASWUnitTestsBCBGUIMain::Start(TGUIOptions const& options)
+void TFormASWUnitTestsBCBGUIMain::Start(TGUIOptions const& options, EGUITheme theme, std::string const& darkTheme,
+    UnicodeString const& darkStyle, std::vector<std::string> const& themeProblems)
 {
     m_Options = options;
+    m_Theme = theme;
+    m_DarkTheme = darkTheme;
+    m_DarkStyle = darkStyle;
+    ShowThemeState();
+    FillDarkThemeMenu();
 
     // The observer always gets the log without color codes, whatever --color says.
     m_Observer.LogTextCallback = &this->ObserverLogText;
@@ -1555,7 +2026,13 @@ void TFormASWUnitTestsBCBGUIMain::Start(TGUIOptions const& options)
     }
 
     if (m_Options.LayoutIgnore)
-        AppendLog("Note: --layout-ignore: the window layout isn't loaded or saved, so it opens with the defaults.\n");
+    {
+        AppendLog("Note: --layout-ignore: the window layout and theme aren't loaded or saved, so it opens with the "
+            "defaults.\n");
+    }
+
+    for (std::vector<std::string>::const_iterator it = themeProblems.begin(); it != themeProblems.end(); ++it)
+        AppendLog(*it + "\n");
 
     if (m_Options.LayoutReset)
         ResetSavedLayout();

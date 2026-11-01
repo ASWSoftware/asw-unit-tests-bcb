@@ -18,11 +18,6 @@
         <CfgParent>Base</CfgParent>
         <Base>true</Base>
     </PropertyGroup>
-    <PropertyGroup Condition="('$(Platform)'=='Win64' and '$(Base)'=='true') or '$(Base_Win64)'!=''">
-        <Base_Win64>true</Base_Win64>
-        <CfgParent>Base</CfgParent>
-        <Base>true</Base>
-    </PropertyGroup>
     <PropertyGroup Condition="('$(Platform)'=='Win64x' and '$(Base)'=='true') or '$(Base_Win64x)'!=''">
         <Base_Win64x>true</Base_Win64x>
         <CfgParent>Base</CfgParent>
@@ -50,25 +45,15 @@
         <CfgParent>Base</CfgParent>
         <Base>true</Base>
     </PropertyGroup>
-    <PropertyGroup Condition="('$(Platform)'=='Win32' and '$(Cfg_2)'=='true') or '$(Cfg_2_Win32)'!=''">
-        <Cfg_2_Win32>true</Cfg_2_Win32>
-        <CfgParent>Cfg_2</CfgParent>
-        <Cfg_2>true</Cfg_2>
-        <Base>true</Base>
-    </PropertyGroup>
-    <PropertyGroup Condition="('$(Platform)'=='Win64x' and '$(Cfg_2)'=='true') or '$(Cfg_2_Win64x)'!=''">
-        <Cfg_2_Win64x>true</Cfg_2_Win64x>
-        <CfgParent>Cfg_2</CfgParent>
-        <Cfg_2>true</Cfg_2>
-        <Base>true</Base>
-    </PropertyGroup>
     <PropertyGroup Condition="'$(Base)'!=''">
+        <BT_BuildType>Debug</BT_BuildType>
         <IntermediateOutputDir>.\$(Platform)\$(Config)</IntermediateOutputDir>
         <FinalOutputDir>.\$(Platform)\$(Config)</FinalOutputDir>
         <BCC_wpar>false</BCC_wpar>
         <ProjectType>CppConsoleApplication</ProjectType>
-        <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Vcl;$(DCC_Namespace)</DCC_Namespace>
+        <PackageImports>rtl;$(PackageImports)</PackageImports>
         <AllPackageLibs>rtl.lib</AllPackageLibs>
+        <LinkPackageStatics>rtl.lib</LinkPackageStatics>
         <Multithreaded>true</Multithreaded>
         <IncludePath>..\src\;..\tests\;..\toTest\;..\gui\src\;$(IncludePath)</IncludePath>
         <_TCHARMapping>char</_TCHARMapping>
@@ -77,30 +62,19 @@
         <BCC_SelectedWarnings_v15>false</BCC_SelectedWarnings_v15>
         <SanitizedProjectName>ASWUnitTestsBCB</SanitizedProjectName>
         <ILINK_LibraryPath>..\gui\src\;..\src\;..\tests\;..\toTest\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
+        <Manifest_File>(None)</Manifest_File>
+        <AppDPIAwarenessMode>none</AppDPIAwarenessMode>
         <Icon_MainIcon>$(BDS)\bin\cbuilder_PROJECTICON.ico</Icon_MainIcon>
         <UWP_CppLogo44>$(BDS)\bin\Artwork\Windows\UWP\cppreg_UwpDefault_44.png</UWP_CppLogo44>
         <UWP_CppLogo150>$(BDS)\bin\Artwork\Windows\UWP\cppreg_UwpDefault_150.png</UWP_CppLogo150>
-        <VerInfo_Locale>1033</VerInfo_Locale>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(Base_Win32)'!=''">
-        <PackageImports>rtl;$(PackageImports)</PackageImports>
-        <DCC_Namespace>Winapi;System.Win;$(DCC_Namespace)</DCC_Namespace>
-        <Manifest_File>(None)</Manifest_File>
-        <ILINK_DisableIncrementalLinking>true</ILINK_DisableIncrementalLinking>
-        <AppDPIAwarenessMode>none</AppDPIAwarenessMode>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(Base_Win64)'!=''">
-        <DCC_Namespace>Winapi;System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;$(DCC_Namespace)</DCC_Namespace>
-        <BT_BuildType>Debug</BT_BuildType>
         <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
         <VerInfo_Locale>1033</VerInfo_Locale>
     </PropertyGroup>
+    <PropertyGroup Condition="'$(Base_Win32)'!=''">
+        <ILINK_DisableIncrementalLinking>true</ILINK_DisableIncrementalLinking>
+    </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win64x)'!=''">
-        <PackageImports>rtl;$(PackageImports)</PackageImports>
-        <DCC_Namespace>Winapi;System.Win;$(DCC_Namespace)</DCC_Namespace>
-        <Manifest_File>(None)</Manifest_File>
         <BCC_UserSuppliedOptions>-Wno-padded</BCC_UserSuppliedOptions>
-        <AppDPIAwarenessMode>none</AppDPIAwarenessMode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1)'!=''">
         <BCC_OptimizeForSpeed>false</BCC_OptimizeForSpeed>
@@ -119,22 +93,13 @@
         <ILINK_LibraryPath>$(BDSLIB)\$(PLATFORM)\debug;$(ILINK_LibraryPath)</ILINK_LibraryPath>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
-        <ILINK_LibraryPath>$(BDSLIB)\$(PLATFORM)$(CC_SUFFIX)\debug;$(ILINK_LibraryPath)</ILINK_LibraryPath>
-        <LinkPackageStatics>rtl.lib</LinkPackageStatics>
         <Debugger_RunParams>--pause</Debugger_RunParams>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win64x)'!=''">
-        <LinkPackageStatics>rtl.lib</LinkPackageStatics>
         <Debugger_RunParams>--pause</Debugger_RunParams>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <Defines>NDEBUG;$(Defines)</Defines>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
-        <BCC_OptimizeForSpeed>true</BCC_OptimizeForSpeed>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(Cfg_2_Win64x)'!=''">
-        <LinkPackageStatics>rtl.lib</LinkPackageStatics>
         <BCC_OptimizeForSpeed>true</BCC_OptimizeForSpeed>
     </PropertyGroup>
     <ItemGroup>
@@ -161,6 +126,10 @@
         <CppCompile Include="..\gui\src\ASWUnitTestsBCB_GUI_TestList.cpp">
             <DependentOn>..\gui\src\ASWUnitTestsBCB_GUI_TestList.h</DependentOn>
             <BuildOrder>29</BuildOrder>
+        </CppCompile>
+        <CppCompile Include="..\gui\src\ASWUnitTestsBCB_GUI_Theme.cpp">
+            <DependentOn>..\gui\src\ASWUnitTestsBCB_GUI_Theme.h</DependentOn>
+            <BuildOrder>37</BuildOrder>
         </CppCompile>
         <CppCompile Include="..\src\ASWUnitTestsBCB_CLI.cpp">
             <DependentOn>..\src\ASWUnitTestsBCB_CLI.h</DependentOn>
@@ -248,6 +217,10 @@
         <CppCompile Include="..\tests\Test_ASWUnitTestsBCB_GUI_TestList.cpp">
             <DependentOn>..\tests\Test_ASWUnitTestsBCB_GUI_TestList.h</DependentOn>
             <BuildOrder>35</BuildOrder>
+        </CppCompile>
+        <CppCompile Include="..\tests\Test_ASWUnitTestsBCB_GUI_Theme.cpp">
+            <DependentOn>..\tests\Test_ASWUnitTestsBCB_GUI_Theme.h</DependentOn>
+            <BuildOrder>38</BuildOrder>
         </CppCompile>
         <CppCompile Include="..\tests\Test_ASWUnitTestsBCB_Handler.cpp">
             <DependentOn>..\tests\Test_ASWUnitTestsBCB_Handler.h</DependentOn>

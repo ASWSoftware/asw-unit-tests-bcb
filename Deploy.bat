@@ -94,6 +94,10 @@ call :CopyFile "gui\src\ASWUnitTestsBCB_GUI_ShuffleSeedDialog.cpp" "gui\src\ASWU
 if errorlevel 1 exit /b 1
 call :CopyFile "gui\src\ASWUnitTestsBCB_GUI_ShuffleSeedDialog.h" "gui\src\ASWUnitTestsBCB_GUI_ShuffleSeedDialog.h"
 if errorlevel 1 exit /b 1
+call :CopyFile "gui\src\ASWUnitTestsBCB_GUI_Style.cpp" "gui\src\ASWUnitTestsBCB_GUI_Style.cpp"
+if errorlevel 1 exit /b 1
+call :CopyFile "gui\src\ASWUnitTestsBCB_GUI_Style.h" "gui\src\ASWUnitTestsBCB_GUI_Style.h"
+if errorlevel 1 exit /b 1
 call :CopyFile "gui\src\ASWUnitTestsBCB_GUI_TestList.cpp" "gui\src\ASWUnitTestsBCB_GUI_TestList.cpp"
 if errorlevel 1 exit /b 1
 call :CopyFile "gui\src\ASWUnitTestsBCB_GUI_TestList.h" "gui\src\ASWUnitTestsBCB_GUI_TestList.h"
@@ -101,6 +105,10 @@ if errorlevel 1 exit /b 1
 call :CopyFile "gui\src\ASWUnitTestsBCB_GUI_TextDialog.cpp" "gui\src\ASWUnitTestsBCB_GUI_TextDialog.cpp"
 if errorlevel 1 exit /b 1
 call :CopyFile "gui\src\ASWUnitTestsBCB_GUI_TextDialog.h" "gui\src\ASWUnitTestsBCB_GUI_TextDialog.h"
+if errorlevel 1 exit /b 1
+call :CopyFile "gui\src\ASWUnitTestsBCB_GUI_Theme.cpp" "gui\src\ASWUnitTestsBCB_GUI_Theme.cpp"
+if errorlevel 1 exit /b 1
+call :CopyFile "gui\src\ASWUnitTestsBCB_GUI_Theme.h" "gui\src\ASWUnitTestsBCB_GUI_Theme.h"
 if errorlevel 1 exit /b 1
 call :CopyFile "rad370\ASWUnitTestsBCB.cbproj" "rad370\ASWUnitTestsBCB.cbproj"
 if errorlevel 1 exit /b 1
@@ -205,6 +213,10 @@ if errorlevel 1 exit /b 1
 call :CopyFile "tests\Test_ASWUnitTestsBCB_GUI_TestList.cpp" "tests\Test_ASWUnitTestsBCB_GUI_TestList.cpp"
 if errorlevel 1 exit /b 1
 call :CopyFile "tests\Test_ASWUnitTestsBCB_GUI_TestList.h" "tests\Test_ASWUnitTestsBCB_GUI_TestList.h"
+if errorlevel 1 exit /b 1
+call :CopyFile "tests\Test_ASWUnitTestsBCB_GUI_Theme.cpp" "tests\Test_ASWUnitTestsBCB_GUI_Theme.cpp"
+if errorlevel 1 exit /b 1
+call :CopyFile "tests\Test_ASWUnitTestsBCB_GUI_Theme.h" "tests\Test_ASWUnitTestsBCB_GUI_Theme.h"
 if errorlevel 1 exit /b 1
 call :CopyFile "tests\Test_ASWUnitTestsBCB_Handler.cpp" "tests\Test_ASWUnitTestsBCB_Handler.cpp"
 if errorlevel 1 exit /b 1

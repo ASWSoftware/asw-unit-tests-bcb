@@ -87,13 +87,19 @@ public:
     }
 };
 
+//---------------------------------------------------------------------------
+
 std::vector<std::string> Args(char const* arg1 = nullptr, char const* arg2 = nullptr, char const* arg3 = nullptr,
     char const* arg4 = nullptr);
 std::string Matching(ASWUnitTestsBCB::ITestFilter const& filter, std::vector<std::string> const& names);
 TParseResult Parse(std::vector<std::string> const& args);
 
 //---------------------------------------------------------------------------
-// Returns a command line's arguments: the program's name, then each argument given, up to the first nullptr.
+/*
+    Args
+
+    Returns a command line's arguments: the program's name, then each argument given, up to the first nullptr.
+*/
 std::vector<std::string> Args(char const* arg1, char const* arg2, char const* arg3, char const* arg4)
 {
     char const* const given[] = { arg1, arg2, arg3, arg4 };
@@ -105,7 +111,11 @@ std::vector<std::string> Args(char const* arg1, char const* arg2, char const* ar
     return args;
 }
 //---------------------------------------------------------------------------
-// Returns the names 'filter' matches, as "Group.Test;Group.Test;".
+/*
+    Matching
+
+    Returns the names 'filter' matches, as "Group.Test;Group.Test;".
+*/
 std::string Matching(ASWUnitTestsBCB::ITestFilter const& filter, std::vector<std::string> const& names)
 {
     std::string matching;
@@ -132,6 +142,7 @@ TParseResult Parse(std::vector<std::string> const& args)
 
 } // namespace
 
+//---------------------------------------------------------------------------
 
 namespace ASWUnitTestsBCB
 {

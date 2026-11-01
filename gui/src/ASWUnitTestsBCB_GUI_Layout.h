@@ -84,6 +84,10 @@ System::UnicodeString GUILayoutFilePath();
 bool IsWindowReachable(System::Types::TRect const& bounds, std::vector<System::Types::TRect> const& workAreas);
 // Reads the layout SaveGUILayout() wrote to 'ini'.
 TGUILayout LoadGUILayout(System::Inifiles::TCustomIniFile& ini);
+// The layout file at 'path', e.g. GUILayoutFilePath(), read into memory (empty if it doesn't exist), and written by its
+// UpdateFile(), both as UTF-8, so that a non-ASCII value, such as a theme file's name, is kept. A file written before
+// in the ANSI code page reads the same, as long as it's ASCII. The caller owns it.
+System::Inifiles::TMemIniFile* NewGUILayoutFile(System::UnicodeString const& path);
 // Writes 'layout' to 'ini', removing each value it doesn't have. For a TMemIniFile, the file itself is only written
 // by a later UpdateFile().
 void SaveGUILayout(System::Inifiles::TCustomIniFile& ini, TGUILayout const& layout);

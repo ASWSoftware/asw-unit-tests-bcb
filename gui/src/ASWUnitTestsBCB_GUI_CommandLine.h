@@ -45,8 +45,8 @@ struct TGUIOptions
     bool ExitAfterRun; // --exit: close when the --run run finishes, returning the console's exit code
     // Console-only options that were given but have no effect in the GUI (e.g. "--list"), for the GUI to note.
     std::vector<std::string> IgnoredOptions;
-    bool LayoutIgnore; // --layout-ignore: neither load nor save the window layout
-    bool LayoutReset;  // --layout-reset: delete the saved window layout, and start from the default one
+    bool LayoutIgnore; // --layout-ignore: neither load nor save the window layout or the theme
+    bool LayoutReset;  // --layout-reset: delete the saved window layout and theme, and start from the defaults
     bool RunOnStart;   // --run: run the checked tests once the window opens
 
     TGUIOptions();

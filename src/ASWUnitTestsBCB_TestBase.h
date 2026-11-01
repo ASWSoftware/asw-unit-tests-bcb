@@ -1043,7 +1043,9 @@ protected: // Assertion/Check methods - Not Equals
 
 protected: // Assertion/Check methods - Near (floating point, absolute tolerance)
     // 'actual' is near 'expected' when they're equal (so equal infinities are) or differ by at most 'tolerance'; a
-    // NaN is near nothing. Failures show values as std::to_string() does (see DescribeFixed()), e.g. "0.100000".
+    // NaN is near nothing. A negative or NaN 'tolerance' fails all four, whatever the values ("Invalid tolerance
+    // -0.500000: it must be zero or more"). Failures show values as std::to_string() does (see DescribeFixed()), e.g.
+    // "0.100000".
     virtual void AssertNear(float expected, float actual, float tolerance, std::string const& method, int line,
         TCheckMessage const& msg = TCheckMessage());
     virtual void AssertNear(double expected, double actual, double tolerance, std::string const& method, int line,

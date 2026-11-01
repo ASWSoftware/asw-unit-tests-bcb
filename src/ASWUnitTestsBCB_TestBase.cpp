@@ -36,12 +36,14 @@ limitations under the License.
 #include <stdexcept>
 #include <string>
 #include <vector>
+#if defined(_WIN64)
+#  include <cfenv> // TTestWorkerThread
+#endif
 //---------------------------------------------------------------------------
 #include <System.Classes.hpp>
 #include <System.Diagnostics.hpp>
 #include <System.SysUtils.hpp>
 #include <System.TimeSpan.hpp>
-#include <windows.h>
 //---------------------------------------------------------------------------
 #include "ASWUnitTestsBCB_Console.h"
 #include "ASWUnitTestsBCB_CrashGuard.h"
@@ -78,6 +80,13 @@ struct TPublishedMethod
 // The thread TTestGroupBase::RunWithTimeout() runs a test on: it calls
 // 'work' once. Created suspended, and never freed by itself, so the
 // waiting thread decides whether to free it or abandon it.
+//
+// It starts with the floating-point environment of the thread that creates
+// it, as the test would have there. On Win64 it has to be passed over: a new
+// thread starts with the defaults (rounding to nearest), except for the
+// MXCSR the RTL's own SetMXCSR() set. On Win32 a new thread already starts
+// with the x87 control word _control87() or Set8087CW() set (both update
+// the RTL's Default8087CW).
 /////////////////////////////////////////////////////////////////////////////
 class TTestWorkerThread : public TThread
 {
@@ -85,6 +94,9 @@ private:
     typedef TThread inherited;
 
 private:
+#if defined(_WIN64)
+    std::fenv_t m_Environment; // The creating thread's
+#endif
     TThreadMethod m_Work;
 
 protected:
@@ -108,6 +120,9 @@ long const WorkerAbandoned = 4; // It may no longer
 // outcome (WorkerFinished); waits for a recording in progress to end first.
 bool AbandonWorker(long volatile& workerState);
 double ElapsedMs(TStopwatch& stopwatch);
+// "Invalid tolerance -0.500000: it must be zero or more. <msg>" when 'tolerance' is negative or a NaN, which fails
+// every Near and NotNear method whatever the values; otherwise empty.
+std::string InvalidToleranceFailure(double tolerance, std::string const& msg);
 // True when 'actual' is near 'expected' (see TTestGroupBase::CheckNear()); also sets 'difference'.
 template <typename TFloat>
 bool IsNear(TFloat expected, TFloat actual, TFloat tolerance, TFloat& difference);
@@ -127,10 +142,16 @@ __fastcall TTestWorkerThread::TTestWorkerThread(TThreadMethod work)
       m_Work(work)
 {
     FreeOnTerminate = false;
+#if defined(_WIN64)
+    std::fegetenv(&m_Environment);
+#endif
 }
 //---------------------------------------------------------------------------
 void __fastcall TTestWorkerThread::Execute()
 {
+#if defined(_WIN64)
+    std::fesetenv(&m_Environment);
+#endif
     m_Work();
 }
 //---------------------------------------------------------------------------
@@ -151,6 +172,14 @@ double ElapsedMs(TStopwatch& stopwatch)
 {
     TTimeSpan elapsed = stopwatch.Elapsed;
     return elapsed.TotalMilliseconds;
+}
+//---------------------------------------------------------------------------
+std::string InvalidToleranceFailure(double tolerance, std::string const& msg)
+{
+    if (tolerance >= 0) // False for a NaN as well
+        return std::string();
+
+    return "Invalid tolerance " + DescribeFixed(tolerance) + ": it must be zero or more. " + msg;
 }
 //---------------------------------------------------------------------------
 template <typename TFloat>
@@ -492,6 +521,10 @@ void TTestGroupBase::AssertFalse(bool testVal, std::string const& method, int li
 void TTestGroupBase::AssertNear(float expected, float actual, float tolerance, std::string const& method, int line,
     TCheckMessage const& msg)
 {
+    std::string const invalid = InvalidToleranceFailure(tolerance, msg.Text);
+    if (!invalid.empty())
+        throw TExceptEquals(method, line, invalid);
+
     float difference = 0;
 
     if (!IsNear(expected, actual, tolerance, difference))
@@ -504,6 +537,10 @@ void TTestGroupBase::AssertNear(float expected, float actual, float tolerance, s
 void TTestGroupBase::AssertNear(double expected, double actual, double tolerance, std::string const& method, int line,
     TCheckMessage const& msg)
 {
+    std::string const invalid = InvalidToleranceFailure(tolerance, msg.Text);
+    if (!invalid.empty())
+        throw TExceptEquals(method, line, invalid);
+
     double difference = 0;
 
     if (!IsNear(expected, actual, tolerance, difference))
@@ -532,6 +569,10 @@ void TTestGroupBase::AssertNotEqualsMem(void const* expected, void const* actual
 void TTestGroupBase::AssertNotNear(float expected, float actual, float tolerance, std::string const& method, int line,
     TCheckMessage const& msg)
 {
+    std::string const invalid = InvalidToleranceFailure(tolerance, msg.Text);
+    if (!invalid.empty())
+        throw TExceptNotEquals(method, line, invalid);
+
     float difference = 0;
 
     if (IsNear(expected, actual, tolerance, difference))
@@ -541,6 +582,10 @@ void TTestGroupBase::AssertNotNear(float expected, float actual, float tolerance
 void TTestGroupBase::AssertNotNear(double expected, double actual, double tolerance, std::string const& method,
     int line, TCheckMessage const& msg)
 {
+    std::string const invalid = InvalidToleranceFailure(tolerance, msg.Text);
+    if (!invalid.empty())
+        throw TExceptNotEquals(method, line, invalid);
+
     double difference = 0;
 
     if (IsNear(expected, actual, tolerance, difference))
@@ -623,6 +668,13 @@ void TTestGroupBase::CheckFalse(bool testVal, std::string const& method, int lin
 void TTestGroupBase::CheckNear(float expected, float actual, float tolerance, std::string const& method, int line,
     TCheckMessage const& msg)
 {
+    std::string const invalid = InvalidToleranceFailure(tolerance, msg.Text);
+    if (!invalid.empty())
+    {
+        SetTestFailedCheck(method, line, invalid);
+        return;
+    }
+
     float difference = 0;
 
     if (!IsNear(expected, actual, tolerance, difference))
@@ -635,6 +687,13 @@ void TTestGroupBase::CheckNear(float expected, float actual, float tolerance, st
 void TTestGroupBase::CheckNear(double expected, double actual, double tolerance, std::string const& method, int line,
     TCheckMessage const& msg)
 {
+    std::string const invalid = InvalidToleranceFailure(tolerance, msg.Text);
+    if (!invalid.empty())
+    {
+        SetTestFailedCheck(method, line, invalid);
+        return;
+    }
+
     double difference = 0;
 
     if (!IsNear(expected, actual, tolerance, difference))
@@ -663,6 +722,13 @@ void TTestGroupBase::CheckNotEqualsMem(void const* expected, void const* actual,
 void TTestGroupBase::CheckNotNear(float expected, float actual, float tolerance, std::string const& method, int line,
     TCheckMessage const& msg)
 {
+    std::string const invalid = InvalidToleranceFailure(tolerance, msg.Text);
+    if (!invalid.empty())
+    {
+        SetTestFailedCheck(method, line, invalid);
+        return;
+    }
+
     float difference = 0;
 
     if (IsNear(expected, actual, tolerance, difference))
@@ -672,6 +738,13 @@ void TTestGroupBase::CheckNotNear(float expected, float actual, float tolerance,
 void TTestGroupBase::CheckNotNear(double expected, double actual, double tolerance, std::string const& method,
     int line, TCheckMessage const& msg)
 {
+    std::string const invalid = InvalidToleranceFailure(tolerance, msg.Text);
+    if (!invalid.empty())
+    {
+        SetTestFailedCheck(method, line, invalid);
+        return;
+    }
+
     double difference = 0;
 
     if (IsNear(expected, actual, tolerance, difference))

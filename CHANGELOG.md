@@ -7,6 +7,58 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-31
+
+### Added
+
+- A dark theme in the VCL GUI runner, with **View > Theme** to choose it: **Use Windows Setting**
+  (the default) follows Windows' app mode setting, switching as soon as it changes, but stays light
+  while high contrast is on, and **Light** and **Dark** override it. The choice applies without a
+  restart and is saved in the layout file; `--layout-ignore` and `--layout-reset` cover it as they
+  do the layout. Dark is RAD Studio's Carbon VCL style, so a project of your own that runs its
+  tests in the VCL GUI runner needs Carbon among its custom styles (Project > Options >
+  Application > Appearance), without which Dark shows the light look, and a `WinMain()` that
+  applies the saved theme (see Changed).
+- **View > Theme > Dark Theme** in the VCL GUI runner chooses the dark look's colors from five of
+  RAD Studio's dark VCL styles: Carbon (the default), Charcoal Dark Slate, Cobalt XEMedia, Onyx Blue
+  and Tablet Dark. It lists the ones the executable links in as custom styles, and Carbon always.
+  The choice is saved in the layout file with the theme.
+- VCL style files (`.vsf`) as dark themes in the VCL GUI runner: **View > Theme > Dark Theme** also
+  lists the files in `%APPDATA%\ASWUnitTestsBCB\Themes`, shared by every test app, and **Open
+  Themes Folder** opens it. A style file's problems, such as a missing file or a style name already
+  taken, are reported in the log, with Carbon used in its place.
+- An example parameterized test, `Count_Words`, with labeled rows, in
+  `tests\Test_ASWExample_WordCounter.cpp`.
+
+### Changed
+
+- A VCL GUI project of your own needs the two new files in `gui\src`,
+  `ASWUnitTestsBCB_GUI_Style.cpp` and `ASWUnitTestsBCB_GUI_Theme.cpp`, and its `WinMain()` must
+  load the saved theme and dark theme and apply them before creating the main form, then pass them
+  to the form's `Start()`, which now takes them, the dark theme's VCL style and the problems found
+  loading it as well as the options, as `gui\rad370\ASWUnitTestsBCB_GUI.cpp` does.
+- A negative or NaN tolerance now fails `CheckNotNear`/`AssertNotNear` as well as
+  `CheckNear`/`AssertNear`, whatever the values, with "Invalid tolerance ...: it must be zero or
+  more". Before, the NotNear methods passed with one unless the values were equal, and the Near
+  methods passed with one when they were. A test that passes a negative tolerance must pass its
+  absolute value instead.
+
+### Fixed
+
+- The VCL GUI runner's tooltips for Run Selected and Copy Details showed their keyboard shortcut
+  twice, e.g. "(F9) (F9)".
+- The VCL GUI runner's status bar cut off its first panel's text, such as "Checked: 44 / 284
+  shown", while the filter box hid some tests. It now has room for up to "Checked: 9999 / 9999
+  shown".
+- The VCL GUI runner's progress bar, in the light theme, lagged one test behind the run once a test
+  had failed and it turned red, so a run with a failure ended with it short of full, e.g. two thirds
+  full after three failing tests. It now shows every finished test.
+- With `--test-timeout-seconds`, in a Win64 (bcc64x) build, a test ran with the default
+  floating-point environment instead of the one the run started with: rounding to nearest, whatever
+  rounding mode was set, e.g. with `std::fesetround()`. Each test now starts with the floating-point
+  environment of the thread that runs the tests, as it does without a timeout. Win32 builds already
+  kept it.
+
 ## [1.0.0] - 2026-10-15
 
 ### Added
@@ -149,5 +201,6 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   tests between sessions. After a test times out or a stack overflow ends a run, it runs no more
   tests until restarted.
 
-[Unreleased]: https://github.com/ASWSoftware/asw-unit-tests-bcb/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/ASWSoftware/asw-unit-tests-bcb/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/ASWSoftware/asw-unit-tests-bcb/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/ASWSoftware/asw-unit-tests-bcb/releases/tag/v1.0.0
